@@ -28,7 +28,7 @@ web = ["fastapi>=0.110", "uvicorn>=0.27"]
 web-test = ["pytest>=7", "fastapi>=0.110", "uvicorn>=0.27", "httpx>=0.27"]
 # FactLattice is imported lazily by the DSD writer and the graph viewer; those paths report a clear error when it is
 # absent, and the tests that need it skip. Optional.
-factlattice = ["factlattice"]
+factlattice = ["factlattice @ git+https://github.com/740Dave/factlattice"]
 # (2026-09-29): the behavioural-evals scaffold (gnomon/evals/)
 # is built on Pydantic Evals. The harness core stays stdlib-only; only
 # `gnomon.evals` imports this.

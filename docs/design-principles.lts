@@ -32,10 +32,10 @@ This document opens with that goal, the four problems the platform addresses, th
 
 | Problem | Solution | Result (expected, not yet measured) |
 |---|---|---|
-| **Memory.** An agent starts each session without what the team learned before, and even when a memory store exists it may answer without consulting it. | FactLattice keeps specs, decisions and each agent's memory as plain-text files with ids and properties; lts-engine queries and traverses them. The Gnomon engine renders each agent's definition at launch with its memory inlined, and says so loudly when that fails. | Agents start from what the team already knows, and find it when they need it. |
+| **Memory.** An agent starts each session without what the team learned before, and even when a memory store exists it may answer without consulting it. | FactLattice keeps specs, decisions and each agent's memory as plain-text files with ids and properties; factlattice-engine queries and traverses them. The Gnomon engine renders each agent's definition at launch with its memory inlined, and says so loudly when that fails. | Agents start from what the team already knows, and find it when they need it. |
 | **Ambiguity.** Given an unclear spec, or too little context for a considered choice, an agent may guess silently. | The agent puts the choice to the pilot as a decision document: options, tradeoffs and a recommendation. The answer is recorded and delivered back to the agent. Specs are checked against what was actually asked for before anything is built. | Fewer silent guesses; the choices that matter reach the pilot with what is needed to decide them. |
 | **Agent behaviour.** How an agent works as a collaborator is hard to see and easy to misread: a confident report can rest on a check that never ran. | The Gnomon engine records every action its harness takes, with its source; status is reported only from evidence about the live object; every change is reviewed by someone who did not write it. | The pilot can see what the agents did and can trust what they report. |
-| **Synthesis.** The information a decision needs is usually scattered across many documents, and agents struggle to pull it together. | Decisions, specs and the links between them are kept as one graph of FactLattice files; lts-engine follows those links, so an agent can gather what bears on a choice. | Decisions that draw on everything relevant, not only on what was nearest to hand. |
+| **Synthesis.** The information a decision needs is usually scattered across many documents, and agents struggle to pull it together. | Decisions, specs and the links between them are kept as one graph of FactLattice files; factlattice-engine follows those links, so an agent can gather what bears on a choice. | Decisions that draw on everything relevant, not only on what was nearest to hand. |
 
 ## The pillars of outstanding teams [GN-PILLARS]
 
@@ -96,7 +96,7 @@ This document opens with that goal, the four problems the platform addresses, th
 
 - part-of: [GN-PRINCIPLES]
 - terminology: "pilot" in docs and UX = "operator" in code, config and API names.
-- gnomon-platform: The three projects together: FactLattice and lts-engine, the Gnomon engine, and the DSD engine with its decision graph.
+- gnomon-platform: The four projects together: FactLattice and factlattice-engine, the Gnomon engine, the Decision engine with its decision graph, and Gnomon plugins.
 - gnomon-engine: The harness, hub and web dashboard that run the team's agent sessions. Below the opening layer, a bare "Gnomon" in this document means the Gnomon engine.
 - pilot: The human who runs Gnomon and the agent sessions on their machine.
 - harness: The small process that sits between an agent session and the pilot's terminal and carries everything in and out of it.
@@ -135,8 +135,8 @@ This document opens with that goal, the four problems the platform addresses, th
 - open-work-list: An agent's own list of the work it has in hand; reminders are sent only for items on it.
 - reflective-refusal: A soft refusal that asks the agent whether it is sure and lets a second, reasoned call go ahead.
 - start-up-prompt-handler: The harness routine that answers Claude Code's one-time folder-trust prompt when a new session first starts.
-- corpus: A set of structured text files that lts-engine indexes and queries as one collection.
-- lts-engine: The query service over FactLattice files (structured text with headings, ids and properties) that Gnomon uses for specs, decisions and agent memory.
+- corpus: A set of structured text files that factlattice-engine indexes and queries as one collection.
+- factlattice-engine: The query service over FactLattice files (structured text with headings, ids and properties) that Gnomon uses for specs, decisions and agent memory; its service name is `lts-engine`.
 - hardening-list: The project's single list of known security gaps, kept for a later security review rather than fixed during feature work.
 - independent-review: A review by someone who did not write the change, of the exact version that will land.
 - delta-review: A follow-up independent review of a fix round, covering only what changed since the last review.
@@ -386,10 +386,10 @@ Gnomon stands between a set of agent sessions and the pilot in a similar way. It
 
 ### An agent starts from a rendered definition with its memory inlined [DP-GN-21]
 
-> Each session starts from an agent definition rendered fresh at launch, with the agent's durable memory and the referenced graph content from lts-engine inlined, and a failed expansion is shown loudly rather than leaving a quietly incomplete agent.
+> Each session starts from an agent definition rendered fresh at launch, with the agent's durable memory and the referenced graph content from factlattice-engine inlined, and a failed expansion is shown loudly rather than leaving a quietly incomplete agent.
 
 - part-of: [GN-PRINCIPLES]
-- implication: The agent's durable memory lives in its own lts-engine corpus, not in loose files; memories are separated by convention, with each agent writing only to its own.
+- implication: The agent's durable memory lives in its own factlattice-engine corpus, not in loose files; memories are separated by convention, with each agent writing only to its own.
 - implication: The renderer reports every outcome other than success to the session and the pilot.
 - implication: Shared text in definitions lives in one fragment that each definition includes, never in pasted copies.
 - test: If a session can start without its memory or with an unexpanded definition and nothing says so, the design has failed.

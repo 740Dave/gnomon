@@ -1,18 +1,33 @@
-# Gnomon engine
+# The Gnomon Platform: Gnomon-Engine Repo
 
 <!-- gnomon-platform-opening:start -->
 **The Gnomon Platform makes it easy to lead an outstanding AI team that remembers, collaborates with you and produces extraordinary results.**
 
-The Gnomon Platform is made of three projects:
+## Why Gnomon Exists
+
+The Gnomon Platform is built to address four fundamental problems that come up when one person leads a team of AI agents. By so doing, the Gnomon Platform enables more effective collaboration between humans and AI team members. This extensible platform provides value-added wrappers around native AI services, enables a range of MCP services, and provides a web interface for managing agent interactions and multiple projects (workspaces), each with their own agent profiles and capabilities.
+
+| Problem | What the Gnomon Platform does about it |
+|---|---|
+| **Memory.** An agent starts each session without what the team learned before, and even when a memory store exists it may answer without consulting it. | Specs, decisions and each agent's memory live as plain-text FactLattice files that factlattice-engine can query. Each agent's definition is rendered at launch with its memory inlined, and a failed expansion is shown loudly. |
+| **Ambiguity.** Given an unclear spec, or too little context, an agent may guess silently. | The agent puts the choice to you as a decision document, with options, tradeoffs and a recommendation. Your answer is recorded and delivered back to the agent. |
+| **Agent behaviour.** A confident report can rest on a check that never ran. | The harness records every action it takes with its source, status is reported from evidence about the live object, and every change is reviewed by someone who did not write it. |
+| **Synthesis.** What a decision needs is scattered across many documents. | Decisions, specs and the links between them form one graph that factlattice-engine can follow, so an agent can gather what bears on a choice. |
+
+The Gnomon design principles ([design-principles](https://github.com/740Dave/gnomon/blob/main/docs/design-principles.md)) also describe the pillars of outstanding teams that the platform builds on (among them compelling purpose, psychological safety, and complementary strengths between the human and the agents) and the principles of the pilot's experience. If you find Gnomon useful and are curious about its approach to human-AI collaboration, that document is worth a read.
+
+## The projects that make up the Gnomon Platform
 
 | Project | What it does for the team | Repository |
 |---|---|---|
-| FactLattice (the format) and lts-engine (its engine) | the team's memory and shared knowledge | https://github.com/740Dave/factlattice |
-| Gnomon engine | the harness that runs the team | coming |
-| DSD engine (decision-support documents) and decision graph | how decisions reach you and are recorded | coming: to be forked out of the Gnomon engine |
+| **Gnomon engine:** The heart of the platform, and required for the full experience | The harness that runs the team, and the web dashboard you, the pilot, use to lead it. | https://github.com/740Dave/gnomon |
+| **factlattice-engine:** Gives agents a memory graph they can query, traverse and update over MCP, kept as plain-text FactLattice (`*.lts`) files that people can read, diff and version too. | The team's memory and shared knowledge. Agent definitions embed factlattice-engine queries for essential knowledge; agents query anything else when they need it, and can update their own or the team's shared memory graph; the next query sees the change. | https://github.com/740Dave/factlattice |
+| **Decision engine:** decision-support documents (DSDs) and the decisions-made graph | A single, consistent way for multiple agents to ask you for decisions, with every decision you make stored persistently in FactLattice files that factlattice-engine can query. | https://github.com/740Dave/decision-engine |
+| **Gnomon plugins:** Gnomon supports platform-wide plugins and workspace-specific plugins. | A library of optional, platform-wide capability enhancements. Workspace-specific plugins are typically developed by users to meet a particular project's needs. | https://github.com/740Dave/gnomon-plugins |
+
 <!-- gnomon-platform-opening:end -->
 
-This repository is the Gnomon engine.
+
 
 > **Draft.** This README is being written for the first public release. Sections marked **TODO** depend on facts that are not settled yet; nothing in them should be relied on.
 
@@ -25,7 +40,7 @@ The Gnomon engine runs a team of Claude Code agent sessions on one Mac and lets 
 - **A local hub.** Every harnessed session connects to a hub on your machine, which carries messages and tool calls between sessions, the dashboard and you. The hub and the dashboard listen only on the local machine.
 - **A web dashboard.** The dashboard shows the live sessions and is where you answer the questions your agents put to you.
 - **Decision documents.** When an agent needs a decision from you, it sends a decision document (DSD): the question, the options, their tradeoffs and a recommendation. You answer in the dashboard, your answer is recorded, and it is delivered back to the agent. Answers are stored as plain-text FactLattice files.
-- **Agent definitions rendered at launch.** Each agent starts from a definition rendered fresh for that session, with content from its memory and the team's shared knowledge inlined through lts-engine. A failed expansion is shown loudly, never left as a quietly incomplete agent.
+- **Agent definitions rendered at launch.** Each agent starts from a definition rendered fresh for that session, with content from its memory and the team's shared knowledge inlined through factlattice-engine. A failed expansion is shown loudly, never left as a quietly incomplete agent.
 - **Self-verbs.** Agents look after their own sessions (for example, asking for their own compaction) through tools in their own tool list, with their identity supplied by the harness.
 - **Guard rails, honestly described.** A hook inspects shell commands and file edits an agent is about to make and refuses a small set of dangerous or protected ones. It is a filter for accidents and honest mistakes, with stated gaps, not a security boundary. See the threat model in the design principles.
 
@@ -33,18 +48,18 @@ New behaviour is built behind a flag and switched on once it has been reviewed, 
 
 ## How it is designed
 
-The design principles, including the threat model, are in [`docs/design-principles.lts`](docs/design-principles.lts). They open with the platform's goal and the problems it addresses, then state each technical principle with a test of the form "If ..., the design has failed".
+The design principles, including the threat model, are in [`docs/design-principles.md`](docs/design-principles.md) (generated from the source file [`docs/design-principles.lts`](docs/design-principles.lts)). They open with the platform's goal and the problems it addresses, then state each technical principle with a test of the form "If ..., the design has failed".
 
 In these docs the human who runs Gnomon is called the **pilot**. In code, configuration and API names the same person is called the **operator**.
 
 ## Requirements
 
-- **macOS.** The engine uses macOS facilities (AppleScript to open terminal windows, launchd). The test suite below was run on macOS only. (**TODO**: state Linux status.)
-- **Claude Code.** The harness depends on Claude Code's hook interface, terminal behaviour and transcript layout. It has been measured against Claude Code 2.1.284 and 2.1.287. (**TODO**: state the supported version range.)
+- **macOS.** The engine uses macOS facilities (AppleScript to open terminal windows, launchd). The test suite below was run on macOS only. Windows and Linux support is planned.
+- **Claude Code.** The harness depends on Claude Code's hook interface, terminal behaviour and transcript layout. It has been measured against Claude Code 2.1.284 and 2.1.287. Support for **Codex** is in progress.
 - **Python 3.12 or later** (`requires-python` in `pyproject.toml`). The headless core uses only the standard library.
 - **For the dashboard**: FastAPI and uvicorn, installed with the `web` extra (`pip install -e '.[web]'`).
-- **FactLattice** (optional): the DSD writer and the graph viewer import it lazily and report a clear error when it is absent. Install it with the `factlattice` extra. (**TODO**: state where the package is published.)
-- **lts-engine** (optional MCP server): the default MCP server set names `lts-engine` and `gnomon`; `lts-engine` is expected on your `PATH` and is used for memory and for rendering agent definitions. (**TODO**: state where to get it.)
+- **FactLattice** (optional): the DSD writer and the graph viewer import it lazily and report a clear error when it is absent. FactLattice is not on PyPI; it is published at https://github.com/740Dave/factlattice. Install it from there with `pip install 'factlattice @ git+https://github.com/740Dave/factlattice'`, or with this package's `factlattice` extra, which points to the same repository.
+- **factlattice-engine** (optional MCP server; its service name is `lts-engine`): the default MCP server set names `lts-engine` and `gnomon`; it is used for memory and for rendering agent definitions. factlattice-engine ships in the FactLattice repository and runs as `python3 -m factlattice_engine.server`; Gnomon expects an `lts-engine` command on your `PATH`, so add a small wrapper script with that name that runs it (the FactLattice README shows how to register the server).
 
 ## Quickstart
 
@@ -71,6 +86,11 @@ In these docs the human who runs Gnomon is called the **pilot**. In code, config
 
 `pip install -e '.[test]'` and run `pytest` from the repository root. The suite is a public subset of the project's own tests; none of it needs a live Claude Code install or a browser, and it makes no network connections beyond loopback. Tests that need FastAPI are not collected unless you install the `web-test` extra (`pip install -e '.[web-test]'`), and tests that need FactLattice are not collected without it; `pytest` prints how many files were skipped for each. Measured on macOS with Python 3.13: 2655 passed and 37 skipped with the core install, 3031 passed and 41 skipped with `web-test`, in about six minutes each. Some test files contain deliberate invisible and bidirectional Unicode characters (they test the code that strips or refuses them), so GitHub's hidden-Unicode notice on those files is expected.
 
+## Known limits
+
+- **Restarting the dashboard cuts running sessions off from the hub.** The hub listens on a new port each time the dashboard process starts, and a running session keeps the address it was given at launch, so after a restart its hub tools fail until the session is relaunched. A fix (a fixed hub port) is in the next update.
+- The guard rails and the threat model have their own stated limits; see the design principles.
+
 ## Security
 
 See `SECURITY.md` for how to report a problem. Read the threat model in the design principles before relying on any control: Gnomon assumes cooperative agents that run as your own user.
@@ -88,4 +108,4 @@ This repository is a cleaned export of a project that was first built for one te
 
 ## Licence
 
-MIT. See `LICENSE`. (**TODO**: the copyright holder named there is a placeholder.)
+MIT. See `LICENSE`.
