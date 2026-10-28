@@ -1,0 +1,426 @@
+---
+title: "Gnomon Design Principles"
+id: "GN-PRINCIPLES"
+domain: GNOMON
+scope: "The goal of the Gnomon Platform, the problems it addresses, and the design principles behind the Gnomon engine, a harness and web dashboard for running and supervising several Claude Code agent sessions"
+audience: "Anyone writing a Gnomon spec, building or reviewing a Gnomon change, or extending Gnomon with a new tool, tab, launcher or plug-in"
+boundary: "Principles only. Mechanisms (the harness, the hub, the self-verbs, the decision documents, the scheduler) are specified elsewhere and are named here only to anchor a principle."
+not-this: "Not a tutorial, not implementation code, and not a record of individual decisions."
+status: draft
+version: "0.5"
+---
+# Gnomon Design Principles [GN-PRINCIPLES]
+
+> The Gnomon Platform makes it easy to lead an outstanding AI team that remembers, collaborates with you and produces extraordinary results.
+
+This document opens with that goal, the four problems the platform addresses, the pillars of outstanding teams it builds on, and the principles of the pilot's experience. The technical design principles of the Gnomon engine follow. This is a draft. The principles are meant to guide every Gnomon spec, build and review; where one turns out to be wrong, it is revised in the open rather than quietly ignored.
+
+- kind: design-principles
+- goal: The Gnomon Platform makes it easy to lead an outstanding AI team that remembers, collaborates with you and produces extraordinary results.
+- principle-count: 23
+- experience-principle-count: 5
+- id-scheme: DP-GN-<n>, one node per technical principle; EP-GN-<n>, one node per experience principle; GN-GLOSSARY defines the terms the principles use
+- node-shape: a short principle (usually one sentence) in a blockquote, then implication lines, then one test line of the form "If ..., the design has failed"
+- threat-model: Gnomon assumes cooperative agents. Agents run as the same operating-system user as the pilot and have a shell, so nothing in Gnomon can stop a determined agent from going around Gnomon entirely, and no storage on the machine is out of such an agent's reach. Gnomon's controls therefore govern what happens through Gnomon's own surfaces (its tools, its hub, its dashboard routes and the input of the sessions it runs). They are designed to catch accidents, honest mistakes and misdirected agents, and to protect anything done in the pilot's name or that cannot be undone. Defending against a deliberately hostile program running as the pilot, a hostile agent using its shell, and network attackers is out of scope for now; findings of that kind are kept on the project's hardening list for a later security review. Gnomon's own services listen only on the local machine. That keeps them off the network, but does not protect them from other programs on the same machine, or from web pages open in the pilot's browser that send requests to local addresses. Every "never" and "cannot" below is meant within this model.
+- status: draft. Specified but not on by default: hub credential binding ([DP-GN-6]), several self-verbs and the derivation of a session's self-verbs from its definition ([DP-GN-5]), each behind a flag that defaults to off; detecting a session that runs behind its current setup ([DP-GN-19]) is intended, not built.
+- structure: The opening layer (GN-ROOTS, GN-PILLARS, EP-GN-1 to EP-GN-5) states what the platform is for. DP-GN-1 to DP-GN-22 are properties of the Gnomon engine. DP-GN-23 collects the rules of the process by which the project is built, reviewed and changed.
+
+## The problems the platform addresses [GN-ROOTS]
+
+- part-of: [GN-PRINCIPLES]
+- evidence-status: The results below are expected, not measured. Each is a hypothesis to be tested; no study has been published yet.
+
+| Problem | Solution | Result (expected, not yet measured) |
+|---|---|---|
+| **Memory.** An agent starts each session without what the team learned before, and even when a memory store exists it may answer without consulting it. | FactLattice keeps specs, decisions and each agent's memory as plain-text files with ids and properties; lts-engine queries and traverses them. The Gnomon engine renders each agent's definition at launch with its memory inlined, and says so loudly when that fails. | Agents start from what the team already knows, and find it when they need it. |
+| **Ambiguity.** Given an unclear spec, or too little context for a considered choice, an agent may guess silently. | The agent puts the choice to the pilot as a decision document: options, tradeoffs and a recommendation. The answer is recorded and delivered back to the agent. Specs are checked against what was actually asked for before anything is built. | Fewer silent guesses; the choices that matter reach the pilot with what is needed to decide them. |
+| **Agent behaviour.** How an agent works as a collaborator is hard to see and easy to misread: a confident report can rest on a check that never ran. | The Gnomon engine records every action its harness takes, with its source; status is reported only from evidence about the live object; every change is reviewed by someone who did not write it. | The pilot can see what the agents did and can trust what they report. |
+| **Synthesis.** The information a decision needs is usually scattered across many documents, and agents struggle to pull it together. | Decisions, specs and the links between them are kept as one graph of FactLattice files; lts-engine follows those links, so an agent can gather what bears on a choice. | Decisions that draw on everything relevant, not only on what was nearest to hand. |
+
+## The pillars of outstanding teams [GN-PILLARS]
+
+- part-of: [GN-PRINCIPLES]
+- note: The pillars describe human teams that perform exceptionally well. The right-hand column says how the Gnomon Platform applies each one to a team of a pilot and AI agents.
+
+| Pillar | In an outstanding team | In the Gnomon Platform |
+|---|---|---|
+| **Compelling purpose** | Everyone knows what the team is for and why their part matters. | Each agent starts from a definition, rendered fresh at launch, that states its role and standing instructions. Goals, specs and decisions are written down where every agent can query them. |
+| **Psychological safety** | People can raise a problem, admit a mistake or say "I don't know" without penalty. | An agent can put an open question to the pilot as a decision document instead of guessing. A refusal says what refused and why. Known gaps are recorded as known limits, and a principle found to be wrong is revised in the open. |
+| **Trust and collaboration** | Members rely on each other's work because it can be checked. | Sessions exchange messages through one hub. Every action the harness takes is recorded with its source, and status is reported only from evidence. Each change is reviewed by someone who did not write it; a reviewer running on a different model from the builder adds a second kind of independence. |
+| **Clear roles and accountability** | Each member knows what they own and answers for it. | Each agent has its own definition, its own memory and its own list of open work. Who may launch an agent or restart a service is a recorded grant that the pilot approves. |
+| **Complementary strengths** | The deepest diversity is between what the human brings (judgement, purpose, taste, orthogonal thinking, facts only a person holds) and what agents bring (breadth, speed, execution, recall, code). | Gnomon routes work to whoever does it best. Decision documents carry the human's judgement, with a recommendation the pilot can overrule and a comment field. |
+
+## Experience principles
+
+### The pilot's attention is the scarcest resource [EP-GN-1]
+
+> Gnomon spends the pilot's attention only on what needs a person, and never on reading what a machine could have summarised or decided within its grants.
+
+- part-of: [GN-PRINCIPLES]
+- test: If the pilot has to read through a session to find out what an agent needs from them, the design has failed.
+
+### Decisions arrive as completed staff work [EP-GN-2]
+
+> A decision reaches the pilot as a decision document, with the options, their tradeoffs and a recommendation, not as an ad hoc question in the middle of a session.
+
+- part-of: [GN-PRINCIPLES]
+- implication: Every answer is recorded, together with whether it followed the recommendation and any comment the pilot added, so later work can check what was decided and why.
+- test: If an agent can stop and wait on a question the pilot cannot answer from the question alone, the design has failed.
+
+### The pilot sees the whole team at a glance [EP-GN-3]
+
+> The pilot can see, in one place, every agent session, what each is doing, and which are waiting on them.
+
+- part-of: [GN-PRINCIPLES]
+- status: The dashboard lists the live sessions today. A team view across workspaces is planned, not built.
+- test: If the pilot has to visit each terminal in turn to learn which agent is waiting on them, the design has failed.
+
+### Agents administer themselves [EP-GN-4]
+
+> An agent looks after its own session (compacting it, restarting a service it works on, repairing its own tool connections) through its own tools, without asking the pilot to do it by hand.
+
+- part-of: [GN-PRINCIPLES]
+- see-also: [DP-GN-5]
+- implication: What an agent may do to itself is set by the verb policy and the pilot's grants, not by the agent.
+- test: If routine upkeep of a session needs the pilot's hands on the keyboard, the design has failed.
+
+### Act and flag on the reversible; gate the irreversible [EP-GN-5]
+
+> An agent acts on its own where a step can be cheaply undone and says what it did; a step that cannot be undone, or that acts in the pilot's name, waits for the pilot's proven consent.
+
+- part-of: [GN-PRINCIPLES]
+- see-also: [DP-GN-7]
+- test: If an irreversible step can happen without the pilot's consent, or a reversible one waits on the pilot for no reason, the design has failed.
+
+## Glossary [GN-GLOSSARY]
+
+- part-of: [GN-PRINCIPLES]
+- terminology: "pilot" in docs and UX = "operator" in code, config and API names.
+- gnomon-platform: The three projects together: FactLattice and lts-engine, the Gnomon engine, and the DSD engine with its decision graph.
+- gnomon-engine: The harness, hub and web dashboard that run the team's agent sessions. Below the opening layer, a bare "Gnomon" in this document means the Gnomon engine.
+- pilot: The human who runs Gnomon and the agent sessions on their machine.
+- harness: The small process that sits between an agent session and the pilot's terminal and carries everything in and out of it.
+- hub: The local service that every harnessed session connects to; it carries messages and tool calls between sessions, the dashboard and the pilot.
+- self-verb: A tool in an agent's own tool list that acts on that agent's own session, its own processes, a service it works on (for example restarting it) or its own records, with the caller's identity supplied by the harness.
+- decision-document: A structured question Gnomon presents to the pilot in the dashboard, with options and a recommendation, whose answer is recorded and delivered back to the agent that asked.
+- injection-gate: The check in the harness that every piece of harness-originated text bound for a session passes, and where it is held, refused or allowed. The pilot's own keystrokes reach the same write site but are not gated.
+- hot-path: Code that runs on every tool call, every keystroke or every session start, such as hook handlers and the usage-event recorder.
+- usage-event-recorder: The small function that records that a feature was used, for the feature-usage report.
+- feature-registry: The list of every user-facing feature, with who is expected to use it and how often.
+- wake-up: The moment the harness prompts an idle or newly started session, such as a reminder or the first prompt after a restart.
+- exec-check: The one check every piece of unattended code passes before it runs.
+- launch-admission: The one check every agent-initiated or scheduled way of starting an agent session passes before the session starts. The pilot's own launch paths are not governed by it.
+- usage-gate: The one place a launch consults the account's plan-usage limit.
+- egress-guard: The one filter every outbound network request made on an agent's behalf passes.
+- workspace: A top-level grouping of projects, roles and configuration on one machine; the workspace layer is that workspace's configuration and data.
+- machine-level: Data and configuration that belong to the machine as a whole, not to any workspace.
+- deny-guard: The hook that inspects each shell command, and each file write or edit through Claude Code's editing tools, that an agent is about to make, and refuses a small set of dangerous or protected ones. It is an obvious-filter layer with stated gaps, not a guarantee.
+- agent-definition: The file that describes an agent (its role, its tools, its standing instructions), rendered fresh for each session start.
+- compaction: Claude Code's replacement of a session's long conversation with a summary, so the session can continue.
+- grant: A recorded permission saying who may do a given thing (launch an agent, restart a service).
+- identifier-prefix: The leading part of an id (for example DP-GN-) that marks what kind of thing the id names.
+- recovery-notes: The pilot's written steps for bringing Gnomon back after a failure.
+- live-tree: The installed copy of Gnomon's code that the running sessions and services actually load.
+- land: Putting a finished, reviewed change into the live tree.
+- go-live: The point at which a landed change starts to affect running sessions, for example at the next session start or service restart.
+- spec-checklist: The project's list of rules that every spec and every review is checked against.
+- flag: A named on/off setting that switches a behaviour; every flag has one declared default in the settings registry.
+- scheduler: The part of Gnomon that runs pilot-confirmed jobs (scripts, timed notices, agent runs) on a schedule.
+- verb-policy: The table that says which tools (self-verbs, hub tools, pilot commands) are allowed, for whom.
+- go-live-check: The check run after a change is installed, which confirms the running services and sessions match what was installed.
+- plug-in-registry: The one list of plug-ins and apps Gnomon may run, each described by a manifest.
+- service-registry: The one list of services Gnomon may restart, each with how to restart it and how to check its health.
+- launch-record: The entry written to the one launch log each time an agent session is started or refused.
+- action-record: The entry written for each piece of text the harness types or action it takes in a session, with its kind, source and outcome.
+- open-work-list: An agent's own list of the work it has in hand; reminders are sent only for items on it.
+- reflective-refusal: A soft refusal that asks the agent whether it is sure and lets a second, reasoned call go ahead.
+- start-up-prompt-handler: The harness routine that answers Claude Code's one-time folder-trust prompt when a new session first starts.
+- corpus: A set of structured text files that lts-engine indexes and queries as one collection.
+- lts-engine: The query service over FactLattice files (structured text with headings, ids and properties) that Gnomon uses for specs, decisions and agent memory.
+- hardening-list: The project's single list of known security gaps, kept for a later security review rather than fixed during feature work.
+- independent-review: A review by someone who did not write the change, of the exact version that will land.
+- delta-review: A follow-up independent review of a fix round, covering only what changed since the last review.
+
+## Analogy: the gnomon of a sundial
+
+A sundial's gnomon is the fixed upright that casts the shadow. It makes no decision about the time. It makes what is already happening readable, and it can be trusted because it is fixed in one place and does not move to suit the reading.
+
+Gnomon stands between a set of agent sessions and the pilot in a similar way. It does type into sessions (notices, reminders, relayed messages, and text an agent asks it to send) and it does refuse requests, but within three limits: it attributes everything it types to its source, it never overrides an agent's considered request about its own session, and it never makes the pilot's decisions for the pilot. Every piece of text Gnomon or an agent puts into a session is recorded with its source in the action record ([DP-GN-17] states how a fault in that record is handled). Gnomon's notices also carry a visible tag; text an agent sends through its own inject verb reaches the session as typing would, and is told apart from the pilot's typing only in that record. Within those limits it makes every session visible, carries every message through one fixed place, records what happened, and refuses to report a reading it did not take. When a design question is unclear, ask: "Does this make the pilot's reading of the sessions more trustworthy, or is the harness starting to decide in someone else's place?"
+
+## Principles
+
+### The agent's real interface stays intact and authoritative [DP-GN-1]
+
+> The agent's real interface stays intact and authoritative. Gnomon never emulates a terminal. Any UX that Gnomon presents to the pilot to streamline interaction with agents does so using Gnomon's interfaces and APIs instead of less reliable mechanisms like scraping screens. The terminal remains available as the fallback.
+
+- part-of: [GN-PRINCIPLES]
+- implication: Each agent session runs in the pilot's real terminal through a transparent pseudo-terminal proxy. The harness sits on the wire between the terminal and the agent process; rendering, keys and escape handling stay with the terminal, so Gnomon carries no terminal emulator to maintain.
+- implication: The scope covers every surface Gnomon presents to the pilot: the decision documents today, and any later view of the team.
+- implication: Reading the terminal stream to detect a state (a waiting prompt, a blocker) is one of Gnomon's interfaces, provided it degrades to "not captured" and never guesses. Scraping the screen to present what an agent said or asked is not.
+- implication: A web page never starts a terminal itself. The browser asks, and a local daemon acts.
+- implication: Opening a session goes through a configurable launch-command template, so supporting another terminal or platform is a data extension, not a rebuild.
+- test: If a Gnomon surface has to scrape an agent's screen to present to the pilot what an agent said or asked, or a state detected from the terminal stream is reported as captured when it was not, the design has failed.
+
+### Everything Gnomon sends to a session goes through one write site [DP-GN-2]
+
+> Pilot keystrokes and harness-originated text converge on a single write site into the session, and the injection gate at that site decides whether each piece of harness text is held, refused or written.
+
+- part-of: [GN-PRINCIPLES]
+- see-also: [DP-GN-13]
+- implication: At the byte level the agent cannot tell harness text from a keystroke, so the harness is answerable for everything it types.
+- implication: Every kind of harness-originated text (a notice, a reminder, a boot prompt, a relayed message) passes the gate. The only exemptions are the pilot's own keystrokes and one start-up prompt handler identified by how it is called, never by text it carries. A new Gnomon code path that writes to a session without passing the gate is a defect.
+- implication: Because the decision is enforced at the write site, choosing a different Gnomon feature to reach the session does not get around a refusal.
+- implication: Long text is delivered in a form the receiving interface handles correctly (a bracketed paste with a separate submit), never as one oversized raw write the interface may truncate.
+- implication: The first prompt of a new session is passed as a launch argument, not typed into the session.
+- test: If any Gnomon code path can put harness-originated text into a session without passing the gate, the design has failed.
+
+### The pilot's unsent text and open dialogs are off limits to the harness [DP-GN-3]
+
+> The harness does not type into or submit over text the pilot has typed but not sent, and does not select an option in a dialog that is waiting on a person; by default the only exception saves and restores a half-typed line around a compaction.
+
+- part-of: [GN-PRINCIPLES]
+- implication: Harness text is delivered according to the state of the pilot's input line: an empty line receives it after a short quiet moment; a partly typed line holds it until the pilot sends or clears the line; a line whose state the harness could not follow is treated as empty only after several minutes with no pilot typing; a line reader that fails is treated as busy.
+- implication: By default, when a compaction is due and a half-typed line has been left untouched for a long idle period, the harness saves that text, compacts, and restores it to the input line afterwards. Nothing else clears the pilot's line.
+- implication: An open dialog in the session holds harness text until the dialog closes or a person releases it. Unlike the line states above, there is no time-based release.
+- implication: A hold that lasts is made visible to the pilot, so a waiting notice is never silently stuck.
+- implication: Guidance that cannot wait for the line reaches the agent through a side channel it reads at its next tool call, never through the input line.
+- implication: Text reaches an open dialog only through an explicit pilot action, and that action is recorded.
+- implication: Detecting an open dialog or a busy line is best-effort, and its known gaps are stated rather than assumed away.
+- test: If harness text can submit the pilot's half-typed line, lose it, or pick an option in a question that is waiting on a person, the design has failed.
+
+### The agent owns its own lifecycle; the harness informs and adds friction [DP-GN-4]
+
+> The harness reports context use, relays an agent's own requests and adds friction where a request looks premature, but it never compacts or redirects a session on its own judgement.
+
+- part-of: [GN-PRINCIPLES]
+- implication: Context thresholds produce notices that grow louder near the limit. The only forced compaction is Claude Code's own, unchanged.
+- implication: Where an agent's request about its own session looks premature, the harness answers with a reflective refusal that a second, reasoned call overrides, rather than a hard floor that could leave an idle session unable to act.
+- implication: After a compaction, the session can tell whether the compaction was the agent's own choice, so it knows whether it must recover its working state.
+- implication: An agent with nothing on its own list of open work is left alone; reminders come only for work the agent itself listed, at an interval it chose.
+- implication: Two things may end a session from outside: the pilot, always, and the confirmed time limit of a pilot-confirmed scheduled job that started the session.
+- test: If the harness can compact a session that did not ask for it, or a rule can leave an agent unable to act on its own considered request, the design has failed.
+
+### Agent operations are self-verbs, not script paths [DP-GN-5]
+
+> What an agent does to its own session, its own processes, a service it works on or its own records is meant to be offered as a self-verb in its own tool list, not as a script path the agent has to remember.
+
+- part-of: [GN-PRINCIPLES]
+- implication: A self-verb never takes the caller's own session as an argument. The harness supplies it.
+- implication: A script path is a poor interface: it carries no caller identity, can drift off the search path, and does not appear in the tool list.
+- implication: A self-verb is enabled in a session only when the agent's definition lists it and the verb's own flag and its entry in the verb policy both permit it. The definition only narrows the set; it never grants a verb on its own. A listed verb that its flag or policy forbids stays off, and the go-live check reports it as listed but not permitted, not as a failure.
+- implication: A tool's description is written so that an agent seeing it for the first time can use it correctly.
+- test: If an agent has to know a file path to restart its own session or stop a process it started, the design has failed.
+
+### Identity comes from a credential Gnomon issued, never from an argument [DP-GN-6]
+
+> In Gnomon's design, when an agent calls a hub tool, Gnomon knows which agent is calling from a per-launch credential it issued, and a name in a tool argument is checked against that credential and never trusted on its own; this binding is available behind a flag that defaults to off.
+
+- part-of: [GN-PRINCIPLES]
+- implication: Every hub tool declares, in one registry, who may call it: the pilot, the agent the credential belongs to, or anyone.
+- implication: Restarting a session invalidates its old credential, and a re-registration that does not match the current holder is refused.
+- implication: A launched session runs under the target agent's own id, with that agent's own definition and records; whoever launches it cannot substitute a different id.
+- implication: Self-verbs take the caller from the harness that started the session. Within the cooperative-agent model this keeps each agent in its own scope; it is not offered as a security boundary.
+- test: If, with credential binding switched on, one agent can file a decision document or act through a hub tool in another agent's name by changing an argument, the design has failed.
+
+### Consent is a positive act, proved, and bound to exactly what was consented to [DP-GN-7]
+
+> A choice the pilot makes is never pre-filled, an act Gnomon takes on the pilot's say-so needs proof the pilot gave it, and that proof covers exactly what will run.
+
+- part-of: [GN-PRINCIPLES]
+- implication: A decision document opens with every option unset. The recommendation is shown as a label, and each answer records whether it agreed with the recommendation.
+- implication: Agents propose installs, scheduled jobs and changes; nothing takes effect until the pilot confirms in the dashboard. No Gnomon tool an agent can call performs that confirm, and Gnomon's local services accept a confirm only together with an authentication step at the dashboard that the agent tools do not hand out.
+- implication: The confirm records exactly what will run, both the definition and the code. Any later change to either refuses the next run until the pilot confirms again, with the change shown.
+- implication: Confirming never runs anything by itself.
+- implication: The record of what was confirmed is protected within the cooperative-agent model; where a stronger proof of integrity is not yet built, that is stated as a known limit.
+- test: If a Gnomon tool an agent can call can bring about a pilot confirm, or code changed after a confirm can run under it, the design has failed.
+
+### New behaviour ships switched off; security controls are the exception [DP-GN-8]
+
+> Every new behaviour sits behind a flag that defaults to off, and turning it on is a separate act; a security control is the exception, and is on from the start.
+
+- part-of: [GN-PRINCIPLES]
+- see-also: [DP-GN-14]
+- implication: A change can be installed without its behaviour taking effect, so installing and enabling are judged separately.
+- implication: Every flag and setting has one declared default in one registry. No code that reads a setting supplies its own default, and the effective value can be inspected together with the layer it came from.
+- implication: A tab or route behind a flag is absent when the flag is off: the page and the routes answer exactly as if it did not exist.
+- implication: A behaviour flag may default to on only as a deliberate deployment choice, recorded as such; this does not apply to security controls, which follow the next line.
+- implication: By default a security control has no off switch, so reverting it is a code change with its own independent review, not a toggle. Where a deployment keeps a switch for one, it defaults to on and treats a missing setting as on, and that switch is a known limit under [DP-GN-14].
+- implication: A flag whose on path writes lasting state says what turning the flag off does with that state, because switching off does not by itself undo it.
+- test: If a feature turns on merely because its code was installed, or code that reads a setting can disagree with the registry about its default, the design has failed.
+
+### Code that every session loads is treated as live the moment it changes [DP-GN-9]
+
+> Claude Code hooks, everything they import, the agent-definition renderer and the hub are loaded by every running session, so the product is built so that a change to them can be kept inert until it is meant to take effect.
+
+- part-of: [GN-PRINCIPLES]
+- implication: Hooks run as a fresh process on every invocation, so an edit to a hook module affects every running session as soon as the file is saved. A new hook behaviour is therefore written behind a flag in the same edit, off by default unless the deployment has chosen otherwise, so the saved file is inert until reviewed.
+- implication: Modules that hooks import do no work at import time, and the set of modules hooks import is tracked and can grow only deliberately.
+- implication: The project's process rule for these files is in [DP-GN-23].
+- test: If a saved edit to a hook can change what running sessions do before anyone has decided it should, the design has failed.
+
+### A status is reported only from evidence about the live object [DP-GN-10]
+
+> A health check, a job result or a status line reports success only from current evidence about the thing it names; missing, stale or unread evidence is reported as such, never as success and never as absence.
+
+- part-of: [GN-PRINCIPLES]
+- implication: A health check judges the most recent event about the live object, cross-checked against something that is alive now. A leftover file from a process that has exited vouches for nothing.
+- implication: A check made of several checks fails if any part failed, otherwise reports a skip if any part was not verified, and names the skipped parts.
+- implication: An unattended run succeeds only when it exits cleanly and also produces the success evidence it declares; that the process ran is not success. A run that declares no evidence is shown as unverified, distinctly from verified success, and a job that has never run has its own result, never run, which is never shown as healthy.
+- implication: Every run leaves a receipt with a result from a fixed set, including missed, skipped and refused runs. Receipts are written only by the scheduler and its own launcher and watchdog, never by a hub tool.
+- implication: A reading that could not be taken is shown as unread, never as a reading of nothing. A status someone declared is shown as declared, apart from what was observed, and a statement about the pilot's presence says which signals it is based on.
+- implication: A display never shows more than its source supports: an unknown, stale or empty state is shown as such, an estimate is labelled as an estimate, and a panel showing live state either refreshes or says when it was read.
+- implication: A feature whose use cannot be observed is shown as unobservable, never as unused, and every usage figure carries its denominator.
+- test: If a check, a run or a usage figure can report success or absence when the thing it names was not actually observed, the design has failed.
+
+### Failures and refusals are contained to their feature and are never silent [DP-GN-11]
+
+> When something fails closed, the feature it gates is refused and the refusal says what refused and why, while the process, its connections and unrelated features keep running; code on the hot path is designed not to block.
+
+- part-of: [GN-PRINCIPLES]
+- implication: Every long-running handler catches each fail-closed error at its own boundary. A bad file closes one feature, not the hub.
+- implication: A broken hook for pilot commands blocks only pilot commands, with a visible error. It never takes every session offline.
+- implication: Code on the hot path is designed not to block: it takes no lock, opens no socket and raises no error into its caller, and a fault returns a stated result.
+- implication: A file that a wake-up or the dashboard reads is read in a way that cannot hang, has a stated size limit and behaviour at the limit, and is never created by merely reading it.
+- implication: A refusal names the rule or check that refused, changes nothing, and a change that cannot complete is never left half-applied.
+- implication: By default, when a control cannot run at all (so that a broken install never blocks every command), the operation continues and the failure is loud and recorded. How a fault in the action record is handled is stated once, in [DP-GN-17].
+- test: If one malformed file can stop a connection, a wake-up or an unrelated tab, or a fault disappears without a trace, the design has failed.
+
+### Text an agent wrote is data, never instruction [DP-GN-12]
+
+> Text an agent wrote, when shown to the pilot or passed to another session, is displayed as plain text, limited in size, and labelled as that agent's words.
+
+- part-of: [GN-PRINCIPLES]
+- implication: Agent-written values are never rendered as markup in the dashboard.
+- implication: Text that leaves a session (into an alert, a notification, a shared log or the dashboard) is limited in size and shown as plain text, and its spec says what it may contain and where it is stored.
+- implication: A task handed to a newly launched session is quoted and labelled as the launcher's words, and the notice that reports a decision-document answer is a fixed template filled only with strictly validated identifiers.
+- test: If text an agent wrote can run as script in the dashboard, or reach another session looking like an instruction from the pilot, the design has failed.
+
+### One path for each kind of act [DP-GN-13]
+
+> Each kind of consequential act has exactly one code path that checks it: one injection gate for session input, one exec check for unattended code, one launch admission, one usage gate, one egress guard, one plug-in registry.
+
+- part-of: [GN-PRINCIPLES]
+- see-also: [DP-GN-2]
+- implication: A second path for the same act is a defect even when it repeats the same checks, because copies drift apart.
+- implication: Every way of starting a session writes one record shape to one log, and refuses with a reason from one fixed vocabulary.
+- implication: A fixed list read in several places (reasons, states, kinds of action) is defined in one place in code, and a test enumerates it and fails when any reader lacks a value.
+- implication: A feature that needs its own variant of a rule expresses it as a rule read at the one checkpoint, never as a second checkpoint.
+- implication: The pilot's own direct actions may use their own path, stated as such. Where Gnomon cannot prevent something from being started outside it, it detects and reports that instead of claiming to prevent it.
+- test: If a new launcher, job type or plug-in can avoid the shared check simply by not calling it, the design has failed.
+
+### A security switch is closed only by not being a switch [DP-GN-14]
+
+> Because agents run as the pilot's user, no storage on the machine is out of their reach; a security control is closed only by having no switch, and a security setting kept in agent-reachable storage is a known limit, not a met principle.
+
+- part-of: [GN-PRINCIPLES]
+- see-also: [DP-GN-8]
+- implication: Gnomon gives agents no tool that writes the machine configuration.
+- implication: The deny guard is an obvious-filter layer in front of agent commands and file edits. It catches common mistakes, has known gaps, and those gaps are kept on the project's hardening list.
+- implication: Removing a switch is the closure; widening the filter in front of it is not.
+- implication: A legitimate need for a protected change is met by adding a self-verb, never by loosening the guard, and the guard is only ever extended.
+- implication: A permission is re-read at each use, so editing a session's own launch record does not by itself grant anything through Gnomon's tools.
+- test: If a security setting that an agent can reach is described as closed, rather than recorded as a known limit, the design has failed.
+
+### The source tree is neutral; deployment content is data [DP-GN-15]
+
+> Gnomon's code and tests carry no names, roles, brands or data that belong to one deployment; everything specific to a workspace is loaded from that deployment's configuration.
+
+- part-of: [GN-PRINCIPLES]
+- implication: Every registry that accepts plug-ins, rules or roles accepts entries from the deployment without a change to the package, and a neutrality test fails if a deployment-specific entry appears in the package.
+- implication: Exceptions to the neutrality test are a short, exact, named list, and each temporary exception has a stated end that a test enforces.
+- implication: Moving stored data to a new layout is done once, by a converter that runs as a dry run unless told otherwise, can be run twice safely, and lives outside the source. Gnomon carries no code that reads both the old and the new layout.
+- test: If the package has to be edited to add a workspace, or ships one deployment's identifiers, the design has failed.
+
+### Safety paths do not depend on what they might need to rescue [DP-GN-16]
+
+> Alerts, the shutting down of sessions near the account's usage limit, session restart, recovery and start-up jobs read only machine-level data and their own records, never a workspace's configuration, and an outage of the dashboard is detected from outside the dashboard.
+
+- part-of: [GN-PRINCIPLES]
+- implication: An unreadable workspace configuration is skipped, with a visible banner and the skipped source recorded, rather than blocking a safety path.
+- implication: A small separate watchdog checks the scheduler's heartbeat and job receipts, because a frozen dashboard cannot report its own outage.
+- implication: Failures and items needing attention are never filtered out by the workspace a view is showing.
+- implication: The recovery notes are kept in step with the paths, labels and commands they mention.
+- test: If a damaged or missing workspace file can stop an alert or a session restart, or a frozen dashboard can hide that everything stopped, the design has failed.
+
+### Every harness action leaves a record, and records others read are contracts [DP-GN-17]
+
+> Every piece of text the harness types, every self-action, pilot message and launch is recorded with a distinct kind and source, and any record, field or output line that another component reads is a contract changed together with its readers.
+
+- part-of: [GN-PRINCIPLES]
+- implication: For text the harness types on its own initiative (a reminder, a notice, a nudge), the action record is reserved before typing, and if it cannot be written nothing is typed. For other injections a fault in the action record lets the injection proceed, and leaves a trace: a counter and a warning. Either way, readers treat an action with a start but no outcome as not done.
+- implication: A reminder or notice the harness sends on a schedule is sent at most once per due time, however many processes of that agent are running.
+- implication: A record kind, a log field, a report key, a verify line or a route field that other code reads names its readers, and a change to it updates them in the same change.
+- implication: An identifier made from a timestamp is created so that it can never replace an existing one; a clash picks a new identifier.
+- test: If a change to a record can break a reader without that reader changing too, or an action can happen without a record, the design has failed.
+
+### Processes are controlled by identity, through their supervisor [DP-GN-18]
+
+> Gnomon's tools stop a process only by its literal process id and only inside the caller's own process tree, and restart a service only through its supervisor, never by name pattern and never by starting a second copy by hand.
+
+- part-of: [GN-PRINCIPLES]
+- implication: The deny guard refuses common pattern-kill commands and points to a session-scoped tool that lists what it will signal before it signals it.
+- implication: A restartable service is an entry in one service registry, with how to restart it and how to check its health.
+- implication: Who may restart which service is a grant ([DP-GN-20]).
+- test: If a Gnomon tool lets an agent stop a process outside its own process tree, or a restart can leave two copies of a service running, the design has failed.
+
+### A running session keeps what it was launched with [DP-GN-19]
+
+> A session reads much of its setup once, at launch, so every change says when it reaches running sessions; detecting and reporting a session that is running behind the current setup is the intended direction, not yet a built property.
+
+- part-of: [GN-PRINCIPLES]
+- implication: Hook settings, tool lists, the hub address and flags given at launch stay fixed for the life of a session; a change to any of them reaches a session only at its next start, unless the change is built to be picked up live.
+- implication: A spec says how its change reaches running sessions (at the next session start, or at a service restart) and whether that restart is the pilot's to approve.
+- implication: Anything a long-running session depends on that can move (an address, a port, a path) is found again by the session, not frozen at launch.
+- implication: Gnomon's own path resolution takes every path from the tree that is actually running, so a retired or other copy of the code is never where Gnomon reads or writes live state.
+- test: If a spec changes something a running session reads at launch without saying when and how that change reaches the session, the design has failed.
+
+### Who may do what is data that fails closed [DP-GN-20]
+
+> Every grant (who may launch which agent, who may restart which service, who may set a shared status) is data outside the code, fails closed when missing or damaged, and changes only with the pilot's approval.
+
+- part-of: [GN-PRINCIPLES]
+- implication: A missing, unreadable or malformed grant list means nobody holds the grant, never that everybody does.
+- implication: A grant list is applied whole or not at all.
+- implication: A grant is read afresh at each use.
+- test: If a missing or damaged grant list can give anyone a permission, the design has failed.
+
+### An agent starts from a rendered definition with its memory inlined [DP-GN-21]
+
+> Each session starts from an agent definition rendered fresh at launch, with the agent's durable memory and the referenced graph content from lts-engine inlined, and a failed expansion is shown loudly rather than leaving a quietly incomplete agent.
+
+- part-of: [GN-PRINCIPLES]
+- implication: The agent's durable memory lives in its own lts-engine corpus, not in loose files; memories are separated by convention, with each agent writing only to its own.
+- implication: The renderer reports every outcome other than success to the session and the pilot.
+- implication: Shared text in definitions lives in one fragment that each definition includes, never in pasted copies.
+- test: If a session can start without its memory or with an unexpanded definition and nothing says so, the design has failed.
+
+### Every user-facing feature is registered and its use is measured [DP-GN-22]
+
+> Each user-facing feature (a hook, a self-verb, a pilot command, a hub tool, a dashboard route or tab) has an entry in the feature registry and records its use, so a feature that was built but is never used can be found.
+
+- part-of: [GN-PRINCIPLES]
+- implication: A registry entry is added in the same change that wires the feature's use record.
+- implication: The expected rate of use starts as a written guess and is corrected from what is observed.
+- implication: Use records carry categories only, never content, and recording use is designed never to block or fail the feature.
+- implication: Sessions that only probe or test a feature are excluded from the counts that judge it.
+- test: If a feature can be shipped with no registry entry, or a feature nobody uses looks the same as one nobody can observe, the design has failed.
+
+## How the project is run
+
+### The project's process rules: independent review, red before green, rules recorded in the open [DP-GN-23]
+
+> Gnomon is built under a fixed process: every change is independently reviewed on the exact version that will be installed, its tests are shown to fail before the fix, and every rule the project relies on is written down where the next author will find it.
+
+- part-of: [GN-PRINCIPLES]
+- implication: A spec is checked against what was actually asked for before the first build round.
+- implication: Each change is reviewed by someone who did not write it, against the exact version that will be installed, after the current live tree has been merged into it. The builder's own tests are evidence for the review, never a substitute for it.
+- implication: Because of [DP-GN-9], a change to hooks, their imports, the renderer or the hub is built on a separate copy and installed only after an independent review passes on that exact copy; after installing, each changed file is compared byte for byte with the reviewed copy.
+- implication: After each fix round, a delta review covers what changed, and each fix's test must have been seen failing before the fix and passing after it.
+- implication: Evidence gathered on one version of a file is not evidence for another version, however close.
+- implication: A claim about a race or an intermittent failure is a failure rate over many runs, compared with the previous version under the same conditions; one passing run only shows that the code can succeed.
+- implication: Tests, rehearsals and probes run against separate paths and separate instances, and a test run that loads the suite's own setup is refused any write into the pilot's protected locations; that protection does not cover code run outside the suite's own setup.
+- implication: Checks that a pilot-only route is inert use a separate instance or a request that does not act.
+- implication: When a feature creates something later work must honour (a registry, an event recorder, a hook point, an invariant, a naming convention), the same change adds a rule for it to the spec checklist. A new identifier prefix is registered in the same change that introduces it.
+- implication: A changed rule is never overwritten silently. The old text stays, marked with what replaced it, and each decision records its reasoning and what would show it to be wrong.
+- implication: Reviews are scoped to the threat model in the header; findings outside it go on the hardening list.
+- test: If a change can reach the live tree without an independent review of those exact bytes, or a rule the project depends on exists only in someone's memory, the design has failed.

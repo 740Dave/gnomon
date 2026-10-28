@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gnomon"
+version = "0.4.0"
+description = "Gnomon — a launcher for agent sessions"
+license = { text = "MIT" }
+requires-python = ">=3.12"
+# Harness core is stdlib-only (pty, os, select, termios, tty, fcntl, signal).
+dependencies = []
+
+# (spec 13): the launchd preflight wrapper. The generated agents run it as
+# `<python> -m gnomon.appshost.launch <id> --data-root <DATA>` (no install needed); this is the same
+# entry point under its documented name.
+[project.scripts]
+gnomon-app-launch = "gnomon.appshost.launch:main"
+
+[project.optional-dependencies]
+# The headless core (harness / launch / liveness / hub) and the CTk-free app
+# Controller are stdlib-only. The CustomTkinter view was removed 2026-09-27
+# (superseded by the web ZWD under web/), so the former `gui` extra is gone.
+test = ["pytest>=7"]
+# The web dashboard (web/): FastAPI served by uvicorn. The headless core does not need them.
+web = ["fastapi>=0.110", "uvicorn>=0.27"]
+# Tests of the web dashboard use FastAPI's TestClient, which needs httpx.
+web-test = ["pytest>=7", "fastapi>=0.110", "uvicorn>=0.27", "httpx>=0.27"]
+# FactLattice is imported lazily by the DSD writer and the graph viewer; those paths report a clear error when it is
+# absent, and the tests that need it skip. Optional.
+factlattice = ["factlattice"]
+# (2026-09-29): the behavioural-evals scaffold (gnomon/evals/)
+# is built on Pydantic Evals. The harness core stays stdlib-only; only
+# `gnomon.evals` imports this.
+evals = ["pydantic-evals>=2.51"]
+
+[tool.setuptools.packages.find]
+include = ["gnomon*"]
+
+# the shipped default verb policy (read with stdlib tomllib) must travel with the package.
+[tool.setuptools.package-data]
+"gnomon.harness" = ["verb_policy.toml"]
+"gnomon.native" = ["presence_helper.swift"]
+# X13 S1: the settings registry and the converter seed data (corpus-map, seeds, normalised overrides)
+# ship with the package.
+"gnomon.workspace" = ["settings-registry.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

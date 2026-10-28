@@ -1,0 +1,1208 @@
+/* Gnomon web — macOS dark-mode design system (design-tokens).
+ *
+ * Every colour / type / spacing value is a CSS custom property (a design token)
+ * so every FUTURE slice (DSD, Decisions, Config) stays visually consistent by
+ * referencing these, never ad-hoc hex. Colours are macOS dark-mode grays; the
+ * accent is the blue accent (#0077c0), the
+ * secondary accent a gray (#a7a9ac).
+ *
+ * ⛔ NO monospaced fonts anywhere — ids, session dirs and context %s all render
+ * in the system sans stack (design-direction).
+ */
+
+:root {
+  /* --- surfaces (layered dark grays) --- */
+  --gm-window-bg: #1e1e1e;      /* app window */
+  --gm-content-bg: #252526;     /* content area */
+  --gm-elevated-bg: #2d2d2d;    /* cards / rows */
+  --gm-elevated-2-bg: #3a3a3c;  /* hover / nested */
+  --gm-border: #3a3a3c;
+  --gm-border-subtle: #333334;
+
+  /* --- text --- */
+  --gm-text-primary: #f5f5f7;
+  --gm-text-secondary: #a1a1a6;
+  --gm-text-placeholder: #6e6e73;
+
+  /* --- palette --- */
+  --gm-accent: #0077c0;         /* blue — interactive / accent */
+  --gm-accent-hover: #0a86d4;
+  --gm-accent-press: #005f9a;
+  --gm-secondary: #a7a9ac;      /* gray */
+
+  /* --- status --- */
+  --gm-live: #30d158;           /* macOS green — a live session */
+  --gm-ended: #6e6e73;          /* dimmed — an ended session */
+  --gm-danger: #ff453a;         /* macOS red — destructive */
+
+  /* --- type (system sans, slightly larger base) --- */
+  --gm-font: -apple-system, "SF Pro Text", system-ui, "Helvetica Neue", sans-serif;
+  --gm-fs-base: 15.5px;
+  --gm-fs-sm: 13.5px;
+  --gm-fs-lg: 20px;
+  --gm-fs-xl: 26px;
+
+  /* --- spacing / shape --- */
+  --gm-pad-xs: 4px;
+  --gm-pad-sm: 8px;
+  --gm-pad-md: 14px;
+  --gm-pad-lg: 22px;
+  --gm-pad-xl: 32px;
+  --gm-radius: 10px;
+  --gm-radius-sm: 7px;
+  --gm-header-h: 56px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--gm-window-bg);
+  color: var(--gm-text-primary);
+  font-family: var(--gm-font);
+  font-size: var(--gm-fs-base);
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* --- header ---------------------------------------------------------------- */
+
+.gm-header {
+  height: var(--gm-header-h);
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--gm-pad-md);
+  padding: 0 var(--gm-pad-lg);
+  background: var(--gm-window-bg);
+  border-bottom: 1px solid var(--gm-border);
+}
+
+/* Gnomon's own mark, drawn 34px tall (the header stays 56px; align-items:center centres it vertically); the workspace logo sits to its right. */
+.gm-header img.gm-product-mark {
+  height: 34px;
+  width: auto;
+  display: block;
+  flex: 0 0 auto;
+}
+
+.gm-header img.gm-logo {
+  height: 26px;   /* asset is 2x (52px) for retina */
+  width: auto;
+  display: block;
+}
+
+.gm-header .gm-header-spacer { flex: 1 1 auto; }
+
+.gm-header .gm-hub {
+  font-size: var(--gm-fs-sm);
+  color: var(--gm-text-secondary);
+}
+
+/* --- tab bar --------------------------------------------------------------- */
+
+.gm-tabbar {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 2px;
+  padding: 0 var(--gm-pad-lg);
+  background: var(--gm-window-bg);
+  border-bottom: 1px solid var(--gm-border);
+}
+
+.gm-tab {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--gm-text-secondary);
+  font-family: inherit;
+  font-size: var(--gm-fs-base);
+  padding: var(--gm-pad-sm) var(--gm-pad-md);
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+
+.gm-tab:hover { color: var(--gm-text-primary); }
+
+.gm-tab.is-active {
+  color: var(--gm-text-primary);
+  border-bottom-color: var(--gm-accent);
+}
+
+.gm-tab .gm-tab-stub {
+  font-size: 11px;
+  color: var(--gm-text-placeholder);
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* --- content area ---------------------------------------------------------- */
+
+.gm-content {
+  flex: 1 1 auto;
+  background: var(--gm-content-bg);
+  padding: var(--gm-pad-lg);
+  overflow: auto;
+}
+
+.gm-panel { display: none; }
+.gm-panel.is-active { display: block; }
+
+.gm-section-head {
+  display: flex;
+  align-items: center;
+  gap: var(--gm-pad-md);
+  margin: var(--gm-pad-md) 0 var(--gm-pad-sm);
+}
+
+.gm-section-head h2 {
+  font-size: var(--gm-fs-lg);
+  font-weight: 600;
+  margin: 0;
+}
+
+.gm-section-head .gm-status {
+  font-size: var(--gm-fs-sm);
+  color: var(--gm-text-secondary);
+  margin-left: auto;
+}
+
+/* --- buttons --------------------------------------------------------------- */
+
+.gm-btn {
+  appearance: none;
+  border: 1px solid transparent;
+  border-radius: var(--gm-radius-sm);
+  font-family: inherit;
+  font-size: var(--gm-fs-sm);
+  padding: 6px 14px;
+  cursor: pointer;
+  color: var(--gm-text-primary);
+  background: var(--gm-elevated-2-bg);
+}
+
+.gm-btn:hover { background: #48484a; }
+
+.gm-btn-primary {
+  background: var(--gm-accent);
+  color: #fff;
+}
+.gm-btn-primary:hover { background: var(--gm-accent-hover); }
+.gm-btn-primary:active { background: var(--gm-accent-press); }
+
+.gm-btn:disabled { opacity: 0.5; cursor: default; }
+
+/* --- profile / session rows ------------------------------------------------ */
+
+.gm-list {
+  background: var(--gm-elevated-bg);
+  border: 1px solid var(--gm-border-subtle);
+  border-radius: var(--gm-radius);
+  padding: var(--gm-pad-sm);
+  margin-bottom: var(--gm-pad-lg);
+}
+
+.gm-row {
+  display: flex;
+  align-items: center;
+  gap: var(--gm-pad-md);
+  padding: var(--gm-pad-sm) var(--gm-pad-md);
+  border-radius: var(--gm-radius-sm);
+}
+.gm-row + .gm-row { margin-top: 3px; }
+.gm-row:hover { background: var(--gm-elevated-2-bg); }
+
+.gm-row .gm-row-main { flex: 1 1 auto; min-width: 0; }
+
+.gm-row .gm-row-title {
+  font-size: var(--gm-fs-base);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gm-row .gm-row-sub {
+  font-size: var(--gm-fs-sm);
+  color: var(--gm-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gm-row .gm-id { color: var(--gm-secondary); }
+.gm-row .gm-unreadable { color: var(--gm-danger); }
+
+.gm-dot {
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--gm-ended);
+}
+.gm-dot.is-live { background: var(--gm-live); }
+
+.gm-badge {
+  flex: 0 0 auto;
+  font-size: var(--gm-fs-sm);
+  color: var(--gm-text-secondary);
+}
+
+.gm-empty {
+  color: var(--gm-text-secondary);
+  padding: var(--gm-pad-md);
+}
+
+.gm-error {
+  color: var(--gm-danger);
+  padding: var(--gm-pad-md);
+}
+
+/* --- agent-def size (operator ruling) ---------------------
+   A plain reminder number, never an alarm colour. Above 60K chars a quiet
+   neutral "large" style (primary text + subtle outline). No monospace. */
+
+.gm-defsize {
+  flex: 0 0 auto;
+  font-size: var(--gm-fs-sm);
+  color: var(--gm-text-secondary);
+  white-space: nowrap;
+}
+.gm-defsize.is-large {
+  color: var(--gm-text-primary);
+  border: 1px solid var(--gm-border);
+  border-radius: var(--gm-radius-sm);
+  padding: 0 var(--gm-pad-xs);
+}
+.gm-row .gm-defsize-line {
+  display: flex;
+  align-items: center;
+  gap: var(--gm-pad-xs);
+}
+.gm-btn-link {
+  background: transparent;
+  color: var(--gm-accent);
+  padding: 0 var(--gm-pad-xs);
+  margin-left: var(--gm-pad-sm);
+}
+.gm-btn-link:hover { background: transparent; color: var(--gm-accent-hover); text-decoration: underline; }
+
+.gm-defopt { display: none; }
+.gm-defopt.is-open {
+  display: block;
+  background: var(--gm-elevated-bg);
+  border: 1px solid var(--gm-border-subtle);
+  border-radius: var(--gm-radius);
+  padding: var(--gm-pad-sm) var(--gm-pad-md) var(--gm-pad-md);
+  margin-bottom: var(--gm-pad-lg);
+}
+.gm-defopt-note { color: var(--gm-text-secondary); font-size: var(--gm-fs-sm); margin: var(--gm-pad-xs) 0; }
+.gm-defopt-label { color: var(--gm-text-secondary); font-size: var(--gm-fs-sm); margin-top: var(--gm-pad-md); }
+.gm-defopt-text {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin: var(--gm-pad-xs) 0;
+  font-family: var(--gm-font);   /* NO monospace, even for the command */
+  font-size: var(--gm-fs-sm);
+  color: var(--gm-text-primary);
+  background: var(--gm-content-bg);
+  border: 1px solid var(--gm-border);
+  border-radius: var(--gm-radius-sm);
+  padding: var(--gm-pad-sm);
+  resize: vertical;
+}
+
+/* --- stub panels ----------------------------------------------------------- */
+
+.gm-stub {
+  color: var(--gm-text-secondary);
+  max-width: 640px;
+}
+.gm-stub h2 { color: var(--gm-text-primary); font-size: var(--gm-fs-lg); }
+.gm-stub code {
+  font-family: inherit;   /* NO monospace, even for code-ish text */
+  color: var(--gm-secondary);
+}
+
+/* --- DSD tab (dual pane) --------------------------------------- */
+
+.gm-dsd-banner {
+  color: var(--gm-secondary);
+  font-size: var(--gm-fs-sm);
+  margin: var(--gm-pad-sm) 0;
+  min-height: 1em;
+}
+.gm-dsd-banner.is-warn { color: var(--gm-danger); }
+
+/* held-arrival banner: a DSD arrived while a form had operator input, so the
+   page did NOT auto-switch. Fixed under the header so it shows on every tab;
+   non-blocking (nothing behind it is disabled). */
+.gm-dsd-arrival {
+  position: fixed;
+  top: calc(var(--gm-header-h) + var(--gm-pad-sm));
+  right: var(--gm-pad-lg);
+  z-index: 20;
+  display: none;
+  align-items: center;
+  gap: var(--gm-pad-sm);
+  max-width: min(560px, calc(100vw - 2 * var(--gm-pad-lg)));
+  padding: var(--gm-pad-sm) var(--gm-pad-md);
+  background: var(--gm-elevated-2-bg);
+  color: var(--gm-text-primary);
+  border: 1px solid var(--gm-accent);
+  border-radius: var(--gm-radius);
+  font-size: var(--gm-fs-sm);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+.gm-dsd-arrival.is-shown { display: flex; }
+.gm-dsd-arrival-text { flex: 1 1 auto; min-width: 0; }
+
+.gm-dsd-draft-warn {
+  display: none;
+  color: var(--gm-danger);
+  font-size: var(--gm-fs-sm);
+  margin: var(--gm-pad-sm) 0;
+}
+.gm-dsd-draft-warn.is-shown { display: block; }
+
+.gm-dsd-draft-note {
+  color: var(--gm-secondary);
+  font-size: var(--gm-fs-sm);
+  margin-top: var(--gm-pad-xs);
+}
+
+.gm-dsd {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) 1fr;
+  gap: var(--gm-pad-lg);
+  align-items: start;
+}
+
+.gm-dsd-left { min-width: 0; }
+.gm-dsd-right {
+  min-width: 0;
+  background: var(--gm-elevated-bg);
+  border: 1px solid var(--gm-border-subtle);
+  border-radius: var(--gm-radius);
+  padding: var(--gm-pad-md);
+  min-height: 200px;
+}
+
+.gm-dsd-list { display: block; }
+
+/* a left-pane DSD row (clickable card) */
+.gm-dsd-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  appearance: none;
+  border: 1px solid transparent;
+  background: var(--gm-elevated-2-bg);
+  color: var(--gm-text-primary);
+  border-radius: var(--gm-radius-sm);
+  padding: var(--gm-pad-sm) var(--gm-pad-md);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--gm-fs-base);
+}
+.gm-dsd-item + .gm-dsd-item { margin-top: 4px; }
+.gm-dsd-item:hover { background: #48484a; }
+.gm-dsd-item.is-selected { border-color: var(--gm-accent); }
+
+.gm-dsd-item .gm-dsd-item-kind {
+  font-size: var(--gm-fs-sm);
+  display: block;
+  margin-bottom: 2px;
+}
+.gm-dsd-item .gm-dsd-item-kind.is-pending { color: var(--gm-secondary); }
+.gm-dsd-item .gm-dsd-item-kind.is-answered { color: var(--gm-live); }
+.gm-dsd-item .gm-dsd-item-kind.is-unrenderable { color: var(--gm-text-secondary); }
+.gm-dsd-item .gm-dsd-item-title {
+  font-size: var(--gm-fs-sm);
+  color: var(--gm-text-secondary);
+  white-space: normal;
+}
+
+/* DSD master-pane accordions */
+.gm-dsd-acc { margin-bottom: var(--gm-pad-sm); }
+.gm-dsd-acc > summary,
+.gm-dsd-acc > .gm-dsd-acc-head {
+  font-size: var(--gm-fs-sm);
+  font-weight: 600;
+  color: var(--gm-text-secondary);
+  padding: var(--gm-pad-xs) 2px;
+}
+.gm-dsd-acc > summary { cursor: pointer; }
+.gm-dsd-acc-sender { margin: var(--gm-pad-xs) 0 var(--gm-pad-xs) var(--gm-pad-sm); }
+.gm-dsd-acc-sender > summary { font-weight: 500; }
+.gm-dsd-acc-empty { font-size: var(--gm-fs-sm); padding: 2px; }
+
+/* right-pane detail: present form + browse */
+.gm-dsd-detail-head { margin-bottom: var(--gm-pad-sm); }
+.gm-dsd-detail-head h3 { margin: 0 0 2px; font-size: var(--gm-fs-lg); font-weight: 600; }
+.gm-dsd-detail-head .gm-dsd-meta {
+  font-size: var(--gm-fs-sm);
+  color: var(--gm-secondary);
+}
+
+.gm-dsd-theme {
+  color: var(--gm-text-secondary);
+  font-size: var(--gm-fs-sm);
+  margin: var(--gm-pad-md) 0 var(--gm-pad-xs);
+}
+
+.gm-dsd-card {
+  background: var(--gm-elevated-2-bg);
+  border-radius: var(--gm-radius-sm);
+  padding: var(--gm-pad-md);
+  margin-bottom: var(--gm-pad-md);
+}
+.gm-dsd-card .gm-dsd-q { font-weight: 600; margin-bottom: var(--gm-pad-xs); }
+.gm-dsd-card .gm-dsd-ctx {
+  font-size: var(--gm-fs-sm);
+  color: var(--gm-text-secondary);
+  margin-bottom: 2px;
+}
+.gm-dsd-card .gm-dsd-multi-note {
+  font-size: var(--gm-fs-sm);
+  color: var(--gm-danger);
+  margin: var(--gm-pad-xs) 0;
+}
+
+.gm-dsd-opt {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--gm-pad-sm);
+  padding: 4px 0;
+}
+.gm-dsd-opt input[type="radio"] { margin-top: 3px; accent-color: var(--gm-accent); }
+.gm-dsd-opt .gm-dsd-opt-label { flex: 1 1 auto; }
+.gm-dsd-opt .gm-dsd-opt-trade { color: var(--gm-text-secondary); }
+.gm-dsd-chip {
+  flex: 0 0 auto;
+  font-size: 11px;
+  background: var(--gm-accent);
+  color: #fff;
+  border-radius: var(--gm-radius-sm);
+  padding: 1px 7px;
+}
+.gm-dsd-noreco {
+  font-size: var(--gm-fs-sm);
+  color: var(--gm-text-secondary);
+  margin: var(--gm-pad-xs) 0;
+}
+
+.gm-dsd-comment-label {
+  font-size: var(--gm-fs-sm);
+  color: var(--gm-text-secondary);
+  margin-top: var(--gm-pad-xs);
+}
+.gm-dsd-comment {
+  width: 100%;
+  min-height: 48px;
+  resize: vertical;
+  margin-top: 4px;
+  background: var(--gm-window-bg);
+  color: var(--gm-text-primary);
+  border: 1px solid var(--gm-border);
+  border-radius: var(--gm-radius-sm);
+  padding: var(--gm-pad-sm);
+  font-family: inherit;   /* NO monospace, even for a text area */
+  font-size: var(--gm-fs-sm);
+}
+
+.gm-dsd-gate {
+  color: var(--gm-danger);
+  font-size: var(--gm-fs-sm);
+  margin: var(--gm-pad-sm) 0;
+  min-height: 1em;
+}
+
+.gm-dsd-answer {
+  background: var(--gm-elevated-2-bg);
+  border-radius: var(--gm-radius-sm);
+  padding: var(--gm-pad-md);
+  margin-bottom: var(--gm-pad-sm);
+}
+.gm-dsd-answer .gm-dsd-yourcall { color: var(--gm-secondary); }
+.gm-dsd-answer .gm-dsd-answer-comment {
+  font-size: var(--gm-fs-sm);
+  color: var(--gm-text-secondary);
+  margin-top: 2px;
+}
+
+.gm-dsd-supersession { font-size: var(--gm-fs-sm); margin-bottom: var(--gm-pad-sm); }
+.gm-dsd-supersession.is-current { color: var(--gm-live); }
+.gm-dsd-supersession.is-superseded { color: var(--gm-danger); }
+.gm-dsd-supersession .gm-dsd-caveat { color: var(--gm-text-secondary); display: block; }
+
+.gm-dsd-refused { color: var(--gm-danger); white-space: pre-wrap; }
+
+/* --- Config tab (slice 4) --------------------------------------- */
+
+.gm-config-note {
+  color: var(--gm-text-secondary);
+  font-size: var(--gm-fs-sm);
+  margin: var(--gm-pad-sm) 0 var(--gm-pad-md);
+  max-width: 900px;
+}
+
+.gm-config {
+  background: var(--gm-elevated-bg);
+  border: 1px solid var(--gm-border-subtle);
+  border-radius: var(--gm-radius);
+  padding: var(--gm-pad-md) var(--gm-pad-lg);
+  max-width: 900px;
+}
+
+.gm-config-field { margin-bottom: var(--gm-pad-md); }
+
+.gm-config-label {
+  display: block;
+  font-size: var(--gm-fs-base);
+  margin-bottom: var(--gm-pad-xs);
+}
+.gm-config-reserved {
+  font-size: 11px;
+  color: var(--gm-text-placeholder);
+  margin-left: var(--gm-pad-sm);
+  border: 1px solid var(--gm-border);
+  border-radius: var(--gm-radius-sm);
+  padding: 0 6px;
+  vertical-align: middle;
+}
+
+/* All config inputs use the system sans stack — NO monospace, even for paths. */
+.gm-config-input {
+  width: 100%;
+  background: var(--gm-window-bg);
+  color: var(--gm-text-primary);
+  border: 1px solid var(--gm-border);
+  border-radius: var(--gm-radius-sm);
+  padding: var(--gm-pad-sm);
+  font-family: inherit;
+  font-size: var(--gm-fs-sm);
+}
+.gm-config-input:focus {
+  outline: none;
+  border-color: var(--gm-accent);
+}
+
+.gm-config-help {
+  font-size: var(--gm-fs-sm);
+  color: var(--gm-text-secondary);
+  margin-top: 3px;
+}
+
+.gm-config-subhead {
+  font-size: var(--gm-fs-base);
+  font-weight: 600;
+  margin: var(--gm-pad-lg) 0 var(--gm-pad-sm);
+}
+
+.gm-config-templates {
+  background: var(--gm-window-bg);
+  border: 1px solid var(--gm-border-subtle);
+  border-radius: var(--gm-radius-sm);
+  padding: var(--gm-pad-sm);
+}
+.gm-config-template {
+  display: flex;
+  align-items: center;
+  gap: var(--gm-pad-md);
+  padding: var(--gm-pad-xs) var(--gm-pad-sm);
+}
+.gm-config-template + .gm-config-template { margin-top: 3px; }
+.gm-config-template .gm-config-template-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: inherit;   /* NO monospace, even for a command template */
+  font-size: var(--gm-fs-sm);
+  color: var(--gm-secondary);
+  white-space: normal;
+  word-break: break-word;
+}
+.gm-config-tpl-remove {
+  flex: 0 0 auto;
+  background: var(--gm-elevated-2-bg);
+  color: var(--gm-danger);
+}
+
+.gm-config-addbar {
+  display: flex;
+  gap: var(--gm-pad-sm);
+  margin-top: var(--gm-pad-sm);
+  align-items: center;
+}
+.gm-config-addbar .gm-config-tpl-name { flex: 0 0 180px; width: auto; }
+.gm-config-addbar .gm-config-tpl-cmd { flex: 1 1 auto; }
+.gm-config-addbar .gm-btn { flex: 0 0 auto; }
+
+.gm-config-endpoints {
+  background: var(--gm-window-bg);
+  border: 1px solid var(--gm-border-subtle);
+  border-radius: var(--gm-radius-sm);
+  padding: var(--gm-pad-sm);
+}
+.gm-config-endpoint {
+  font-family: inherit;   /* NO monospace, even for endpoint JSON */
+  font-size: var(--gm-fs-sm);
+  color: var(--gm-text-secondary);
+  padding: 2px var(--gm-pad-sm);
+  white-space: normal;
+  word-break: break-word;
+}
+
+/* --- Config tab master-detail rework -------------------------------------- */
+
+/* The Config panel reuses the graph-viewer master-detail grid (.gm-gv). Its
+   container carries .gm-config too, so neutralize the old single-card styling. */
+.gm-config.gm-gv {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+/* Left rail group buttons reuse .gm-gv-item; align text left, full width. */
+.gm-config-group {
+  width: 100%;
+  text-align: left;
+}
+
+/* A "seconds"-style unit hint beside a field label. */
+.gm-config-unit {
+  font-size: var(--gm-fs-sm);
+  font-weight: 400;
+  color: var(--gm-text-placeholder);
+  margin-left: var(--gm-pad-sm);
+}
+
+/* Multi-line free-text (stall content). Sans font, no monospace. */
+.gm-config-textarea {
+  min-height: 92px;
+  resize: vertical;
+  font-family: inherit;   /* NO monospace, even for injected content */
+  line-height: 1.4;
+}
+
+/* A greyed/disabled field (the stall pane when Enabled is off). */
+.gm-config-field.is-disabled {
+  opacity: 0.45;
+}
+.gm-config-field.is-disabled .gm-config-input,
+.gm-config-field.is-disabled .gm-toggle { cursor: not-allowed; }
+
+/* macOS-style toggle switch (bool fields). Green when on, per the design tokens. */
+.gm-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 44px;
+  height: 26px;
+}
+.gm-toggle input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.gm-toggle-track {
+  width: 44px;
+  height: 26px;
+  border-radius: 13px;
+  background: var(--gm-elevated-2-bg);
+  transition: background 0.15s ease;
+  position: relative;
+}
+.gm-toggle-track::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #f5f5f7;
+  transition: transform 0.15s ease;
+}
+.gm-toggle input:checked + .gm-toggle-track { background: var(--gm-live); }
+.gm-toggle input:checked + .gm-toggle-track::after { transform: translateX(18px); }
+.gm-toggle input:focus-visible + .gm-toggle-track {
+  outline: 2px solid var(--gm-accent);
+  outline-offset: 2px;
+}
+
+/* --- Graph viewer: corpus tabs + PROCs tab (master ~30% / detail ~70%) ----- */
+
+.gm-gv-banner {
+  color: var(--gm-secondary);
+  font-size: var(--gm-fs-sm);
+  margin: var(--gm-pad-sm) 0;
+  min-height: 1em;
+}
+.gm-gv-banner.is-warn { color: var(--gm-danger); }
+
+.gm-gv {
+  display: grid;
+  grid-template-columns: minmax(260px, 30%) 1fr;
+  gap: var(--gm-pad-lg);
+  align-items: start;
+}
+.gm-gv-left { min-width: 0; }
+.gm-gv-left .gm-section-head { flex-wrap: wrap; }
+
+.gm-gv-list {
+  display: block;
+  max-height: calc(100vh - 230px);
+  overflow-y: auto;
+}
+
+.gm-gv-right {
+  min-width: 0;
+  background: var(--gm-elevated-bg);
+  border: 1px solid var(--gm-border-subtle);
+  border-radius: var(--gm-radius);
+  padding: var(--gm-pad-md) var(--gm-pad-lg);
+  min-height: 200px;
+  max-height: calc(100vh - 180px);
+  overflow-y: auto;
+}
+
+/* segmented Tier / Kind control */
+.gm-seg {
+  display: inline-flex;
+  background: var(--gm-window-bg);
+  border: 1px solid var(--gm-border);
+  border-radius: var(--gm-radius-sm);
+  padding: 2px;
+}
+.gm-seg-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--gm-text-secondary);
+  font-family: inherit;
+  font-size: var(--gm-fs-sm);
+  padding: 3px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.gm-seg-btn.is-active { background: var(--gm-elevated-2-bg); color: var(--gm-text-primary); }
+
+/* group header in the master list */
+.gm-gv-group { padding: var(--gm-pad-sm) var(--gm-pad-sm) var(--gm-pad-xs); }
+.gm-gv-group + .gm-gv-item, .gm-gv-item + .gm-gv-group { margin-top: 6px; }
+.gm-gv-group-label {
+  font-size: var(--gm-fs-sm);
+  font-weight: 600;
+  color: var(--gm-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.gm-gv-count {
+  font-weight: 400;
+  color: var(--gm-text-placeholder);
+  margin-left: 4px;
+}
+.gm-gv-group-note {
+  font-size: 12.5px;
+  color: var(--gm-text-placeholder);
+  margin-top: 2px;
+}
+
+/* a master-list row */
+.gm-gv-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  appearance: none;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--gm-text-primary);
+  border-radius: var(--gm-radius-sm);
+  padding: 6px var(--gm-pad-md);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--gm-fs-base);
+}
+.gm-gv-item + .gm-gv-item { margin-top: 2px; }
+.gm-gv-item:hover { background: var(--gm-elevated-2-bg); }
+.gm-gv-item.is-selected { background: var(--gm-elevated-2-bg); border-color: var(--gm-accent); }
+.gm-gv-item.is-roster { border-bottom: 1px solid var(--gm-border); border-radius: 0; margin-bottom: 4px; }
+.gm-gv-item-title { display: block; line-height: 1.3; }
+.gm-gv-item-id {
+  display: block;
+  font-size: 12.5px;
+  color: var(--gm-secondary);
+}
+.gm-gv-step-title .gm-gv-item-id { display: inline; margin-left: 6px; font-weight: 400; }
+
+/* detail pane */
+.gm-gv-head h3 { margin: 0 0 2px; font-size: var(--gm-fs-lg); font-weight: 600; }
+.gm-gv-meta { font-size: var(--gm-fs-sm); color: var(--gm-secondary); }
+.gm-gv-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--gm-pad-sm); }
+.gm-gv-chip {
+  font-size: 12px;
+  color: var(--gm-text-primary);
+  background: var(--gm-elevated-2-bg);
+  border-radius: 999px;
+  padding: 2px 10px;
+}
+.gm-gv-chip.is-accent { background: var(--gm-accent); color: #fff; }
+.gm-gv-chip.is-warn { background: transparent; border: 1px solid var(--gm-danger); color: var(--gm-danger); }
+
+.gm-gv-lede {
+  margin: var(--gm-pad-md) 0;
+  padding: var(--gm-pad-md);
+  border-left: 3px solid var(--gm-accent);
+  background: var(--gm-window-bg);
+  border-radius: 0 var(--gm-radius-sm) var(--gm-radius-sm) 0;
+  font-size: 16.5px;
+  line-height: 1.5;
+}
+.gm-gv-lede-label {
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gm-text-secondary);
+  margin-bottom: 4px;
+}
+
+.gm-gv-section { margin-top: var(--gm-pad-md); }
+.gm-gv-subhead {
+  font-size: var(--gm-fs-sm);
+  font-weight: 600;
+  color: var(--gm-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--gm-pad-sm);
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--gm-border-subtle);
+}
+
+.gm-gv-props {
+  display: grid;
+  grid-template-columns: minmax(130px, 200px) 1fr;
+  gap: 8px var(--gm-pad-md);
+  margin: 0;
+}
+.gm-gv-props dt { color: var(--gm-text-secondary); font-size: var(--gm-fs-sm); padding-top: 2px; }
+.gm-gv-props dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.gm-gv-bullets { margin: 0; padding-left: 1.1em; }
+.gm-gv-bullets li + li { margin-top: 3px; }
+
+.gm-gv-body {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--gm-text-primary);
+}
+
+/* inline code + id references — sans stack, NEVER monospace */
+.gm-gv-code {
+  font-family: inherit;
+  color: var(--gm-secondary);
+  background: var(--gm-window-bg);
+  border-radius: 4px;
+  padding: 0 4px;
+}
+.gm-gv-ref {
+  font-family: inherit;
+  font-size: 0.92em;
+  color: var(--gm-secondary);
+  background: var(--gm-window-bg);
+  border: 1px solid var(--gm-border);
+  border-radius: 4px;
+  padding: 0 5px;
+  white-space: nowrap;
+}
+.gm-gv-ref.is-link { color: var(--gm-accent-hover); text-decoration: none; cursor: pointer; }
+.gm-gv-ref.is-link:hover { border-color: var(--gm-accent); }
+
+.gm-gv-step {
+  background: var(--gm-elevated-2-bg);
+  border-radius: var(--gm-radius-sm);
+  padding: var(--gm-pad-md);
+  margin-bottom: var(--gm-pad-sm);
+}
+.gm-gv-step .gm-gv-props { grid-template-columns: minmax(80px, 110px) 1fr; }
+.gm-gv-step-title { font-weight: 600; margin-bottom: var(--gm-pad-sm); }
+.gm-gv-step-n {
+  display: inline-block;
+  min-width: 22px;
+  height: 22px;
+  line-height: 22px;
+  text-align: center;
+  border-radius: 50%;
+  background: var(--gm-accent);
+  color: #fff;
+  font-size: 12px;
+  margin-right: 8px;
+}
+
+.gm-gv-edge-row { font-size: var(--gm-fs-sm); line-height: 2; }
+.gm-gv-edge-label { color: var(--gm-text-secondary); margin-right: 4px; }
+
+@media (max-width: 760px) {
+  .gm-gv { grid-template-columns: 1fr; }   /* stack master/detail on narrow screens */
+  .gm-gv-props { grid-template-columns: 1fr; }
+}
+
+/* --- toast ----------------------------------------------------------------- */
+
+.gm-toast {
+  position: fixed;
+  bottom: var(--gm-pad-lg);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--gm-elevated-2-bg);
+  color: var(--gm-text-primary);
+  border: 1px solid var(--gm-border);
+  border-radius: var(--gm-radius);
+  padding: var(--gm-pad-sm) var(--gm-pad-lg);
+  font-size: var(--gm-fs-sm);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  max-width: 80vw;
+}
+.gm-toast.is-shown { opacity: 1; }
+.gm-toast.is-error { border-color: var(--gm-danger); }
+
+/* narrow screens */
+@media (max-width: 560px) {
+  .gm-header, .gm-tabbar, .gm-content { padding-left: var(--gm-pad-md); padding-right: var(--gm-pad-md); }
+  .gm-header .gm-hub { display: none; }
+  .gm-dsd { grid-template-columns: 1fr; }   /* stack the dual pane on narrow screens */
+}
+
+/* --- / notice chips -------------------------------------- */
+/* Neutral by design: a queued / held notice is information, not an alarm
+   (no --gm-danger; system sans via inheritance; no monospace). */
+.gm-notice-chip,
+.gm-hold-chip {
+  display: inline-block;
+  flex: 0 0 auto;
+  font-size: var(--gm-fs-sm);
+  color: var(--gm-text-secondary);
+  border: 1px solid var(--gm-border);
+  border-radius: var(--gm-radius-sm);
+  padding: 0 var(--gm-pad-xs);
+  white-space: nowrap;
+}
+.gm-notice-chip.is-queued { color: var(--gm-text-primary); border-color: var(--gm-secondary); }
+.gm-notice-chip.is-delivered { color: var(--gm-text-secondary); border-color: var(--gm-border-subtle); }
+.gm-notice-chip.is-expired { color: var(--gm-text-placeholder); border-style: dashed; }
+.gm-hold-chip { color: var(--gm-text-primary); border-color: var(--gm-secondary); }
+/* build-stamp chips — neutral (information, not an alarm; no --gm-danger). */
+.gm-build-chip {
+  display: inline-block;
+  flex: 0 0 auto;
+  font-size: var(--gm-fs-sm);
+  color: var(--gm-text-secondary);
+  border: 1px solid var(--gm-border);
+  border-radius: var(--gm-radius-sm);
+  padding: 0 var(--gm-pad-xs);
+  white-space: nowrap;
+}
+.gm-build-chip.is-stale { color: var(--gm-text-primary); border-color: var(--gm-secondary); }
+.gm-build-chip.is-unknown { color: var(--gm-text-placeholder); border-style: dashed; }
+#build-info .gm-build-chip { margin-right: var(--gm-pad-sm); }
+/* go-live smoke chip — a FAIL is an alarm (acceptance-2: surfaced loudly). */
+.gm-golive-chip {
+  display: inline-block;
+  flex: 0 0 auto;
+  font-size: var(--gm-fs-sm);
+  color: var(--gm-text-secondary);
+  border: 1px solid var(--gm-border);
+  border-radius: var(--gm-radius-sm);
+  padding: 0 var(--gm-pad-xs);
+  white-space: nowrap;
+  cursor: pointer;
+  margin-right: var(--gm-pad-sm);
+}
+.gm-golive-chip.is-pass { color: var(--gm-text-secondary); border-color: var(--gm-border-subtle); }
+.gm-golive-chip.is-pending { color: var(--gm-text-placeholder); border-style: dashed; }
+.gm-golive-chip.is-fail { color: var(--gm-danger); border-color: var(--gm-danger); }
+.gm-golive-detail {
+  padding: var(--gm-pad-sm) var(--gm-pad-lg);
+  background: var(--gm-elevated-bg);
+  border-bottom: 1px solid var(--gm-border);
+  font-size: var(--gm-fs-sm);
+  color: var(--gm-text-primary);
+}
+.gm-golive-detail[hidden] { display: none; }
+.gm-golive-detail .gm-golive-line { padding: var(--gm-pad-xs) 0; overflow-wrap: anywhere; }
+/* end */
+/* quiescent chip — neutral: a finished agent is information, not an alarm. */
+.gm-quiescent-chip {
+  display: inline-block;
+  flex: 0 0 auto;
+  font-size: var(--gm-fs-sm);
+  color: var(--gm-text-secondary);
+  border: 1px solid var(--gm-border-subtle);
+  border-radius: var(--gm-radius-sm);
+  padding: 0 var(--gm-pad-xs);
+  white-space: nowrap;
+}
+/* idle-snooze chip - same neutral treatment: a deliberate dismissal is information. */
+.gm-idle-snooze-chip {
+  display: inline-block;
+  flex: 0 0 auto;
+  font-size: var(--gm-fs-sm);
+  color: var(--gm-text-secondary);
+  border: 1px solid var(--gm-border-subtle);
+  border-radius: var(--gm-radius-sm);
+  padding: 0 var(--gm-pad-xs);
+  white-space: nowrap;
+}
+/* skill-sync chip - neutral: a generated skill is information. */
+.gm-skill-sync-chip {
+  display: inline-block;
+  flex: 0 0 auto;
+  font-size: var(--gm-fs-sm);
+  color: var(--gm-text-secondary);
+  border: 1px solid var(--gm-border-subtle);
+  border-radius: var(--gm-radius-sm);
+  padding: 0 var(--gm-pad-xs);
+  white-space: nowrap;
+}
+.gm-dsd-item .gm-dsd-item-notice { display: block; margin-top: 2px; }
+.gm-dsd-detail-notice { margin-top: 2px; }
+.gm-notice-warn {
+  font-size: var(--gm-fs-sm);
+  color: var(--gm-text-placeholder);
+  margin: 0 0 var(--gm-pad-xs);
+}
+
+/* --- read-only feature-flags table (Config tab) ------------------ */
+.gm-flags-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: inherit;
+  font-size: var(--gm-fs-sm);
+  color: var(--gm-text-secondary);
+}
+.gm-flags-table th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--gm-text-primary);
+  padding: var(--gm-pad-xs) var(--gm-pad-sm);
+  border-bottom: 1px solid var(--gm-border);
+}
+.gm-flags-table td {
+  padding: var(--gm-pad-xs) var(--gm-pad-sm);
+  border-bottom: 1px solid var(--gm-border-subtle);
+  vertical-align: top;
+  word-break: break-word;
+}
+/* the Flag column never wraps (sans per the no-monospace token); the box scrolls instead. */
+.gm-flags-box { overflow-x: auto; }
+.gm-flags-table th:first-child,
+.gm-flags-table td.gm-flag-name { white-space: nowrap; word-break: normal; font-weight: 600; color: var(--gm-text-primary); }
+/* read-only verb policy view (Config tab). Tokens only. */
+.gm-vp-verb { padding: var(--gm-pad-sm); border-bottom: 1px solid var(--gm-border-subtle); font-size: var(--gm-fs-sm); color: var(--gm-text-secondary); }
+.gm-vp-verb-head { display: flex; gap: var(--gm-pad-sm); align-items: baseline; }
+.gm-vp-verb-name { font-weight: 600; color: var(--gm-text-primary); }
+.gm-vp-src.is-override { color: var(--gm-accent); }
+.gm-vp-target { margin-top: 2px; padding-left: var(--gm-pad-sm); }
+.gm-vp-raw { margin-top: var(--gm-pad-sm); }
+.gm-vp-pre { white-space: pre; overflow-x: auto; font-family: inherit; font-size: var(--gm-fs-sm); color: var(--gm-text-secondary); background: var(--gm-elevated-bg); border: 1px solid var(--gm-border); padding: var(--gm-pad-sm); margin: var(--gm-pad-xs) 0 0; }
+.gm-flags-table tr.is-on .gm-flag-state { color: var(--gm-live); font-weight: 600; }
+.gm-flags-table tr.is-off .gm-flag-state { color: var(--gm-ended); }
+
+
+/* knowledge usage — the Knowledge tab's usage matrix (panel a).
+   Tokens only. A signal is highlighted with the accent (it is a question to
+   investigate), never the danger red (it is not a defect). */
+.gm-ku-denominator { margin: 0 0 var(--gm-pad-sm); }
+.gm-ku-legend { color: var(--gm-text-secondary); font-size: var(--gm-fs-sm); }
+.gm-ku-matrix { overflow: auto; }
+.gm-ku-table {
+  border-collapse: collapse;
+  font-size: var(--gm-fs-sm);
+  background: var(--gm-elevated-bg);
+  border: 1px solid var(--gm-border);
+  border-radius: var(--gm-radius-sm);
+}
+.gm-ku-table th,
+.gm-ku-table td {
+  padding: var(--gm-pad-xs) var(--gm-pad-sm);
+  border-bottom: 1px solid var(--gm-border-subtle);
+  text-align: right;
+}
+.gm-ku-table th { vertical-align: bottom; color: var(--gm-text-primary); font-weight: 600; }
+.gm-ku-table .gm-ku-cat { text-align: left; color: var(--gm-text-secondary); white-space: nowrap; }
+.gm-ku-col-sub { font-weight: 400; color: var(--gm-text-secondary); font-size: var(--gm-fs-sm); }
+.gm-ku-col.is-low .gm-ku-col-name { color: var(--gm-text-secondary); }
+.gm-ku-row.is-family-start td { border-top: 1px solid var(--gm-border); }
+.gm-ku-cell { color: var(--gm-text-primary); font-variant-numeric: tabular-nums; }
+.gm-ku-cell.is-zero { color: var(--gm-text-secondary); }
+.gm-ku-cell.is-muted { color: var(--gm-text-placeholder); }
+.gm-ku-cell.is-signal {
+  box-shadow: inset 0 0 0 1px var(--gm-accent);
+  background: var(--gm-elevated-2-bg);
+}
+.gm-ku-never-list { margin-top: var(--gm-pad-md); }
+.gm-ku-subhead { font-size: var(--gm-fs-base); margin: var(--gm-pad-md) 0 var(--gm-pad-xs); }
+.gm-ku-never { color: var(--gm-text-secondary); font-size: var(--gm-fs-sm); padding: 2px 0; }
+.gm-ku-never.is-unobservable { color: var(--gm-text-placeholder); font-style: italic; }
+/* end knowledge usage */
+
+/* --- read-only def viewer modal (system sans only) --- */
+.gm-btn-read { font-size: 11.5px; padding: 1px 8px; margin-left: 6px; vertical-align: middle; color: var(--gm-text-secondary); }
+.gm-defview-overlay {
+  position: fixed; inset: 0; z-index: 1000; background: rgba(0, 0, 0, 0.6);
+  display: flex; align-items: center; justify-content: center;
+}
+.gm-defview-box {
+  width: min(1000px, 92vw); height: 86vh; display: flex; flex-direction: column;
+  background: var(--gm-elevated-bg); border: 1px solid var(--gm-border); border-radius: var(--gm-radius-sm);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55); font-family: var(--gm-font);
+}
+.gm-defview-head { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--gm-border); }
+.gm-defview-head h3 { flex: 1; margin: 0; font-size: var(--gm-fs-base); color: var(--gm-text-primary); }
+.gm-defview-btns { display: flex; gap: 8px; }
+.gm-defview-summary { padding: 8px 16px; border-bottom: 1px solid var(--gm-border); max-height: 22%; overflow: auto;
+  font-size: var(--gm-fs-sm); color: var(--gm-text-secondary); }
+.gm-defview-line { white-space: pre-wrap; }
+.gm-defview-bad { color: var(--gm-danger); }
+.gm-defview-body { flex: 1; overflow: auto; padding: 12px 16px; white-space: pre-wrap; word-break: break-word;
+  font-family: var(--gm-font); font-size: var(--gm-fs-sm); color: var(--gm-text-primary); user-select: text; }
+
+/* DSD sent / answered time stamps (list rows + detail head). Existing tokens only. */
+.gm-dsd-item-times,
+.gm-dsd-times { display: block; font-size: var(--gm-fs-sm); color: var(--gm-text-secondary); }
+.gm-dsd-times { margin-top: 2px; }
+.gm-dsd-sent { display: inline-block; margin-right: var(--gm-pad-md); }
+.gm-dsd-sent[hidden] { display: none; }
+
+/* confirm-proof F1(c): a security flag is OFF — loud, not decorative. */
+.gm-security-banner {
+  padding: var(--gm-pad-sm) var(--gm-pad-lg);
+  background: var(--gm-elevated-bg);
+  border-bottom: 2px solid var(--gm-danger);
+  color: var(--gm-danger);
+  font-size: var(--gm-fs-sm);
+  font-weight: 600;
+}
+.gm-security-banner[hidden] { display: none; }
+
+/* DSD tab open-by-id box (only built while dsd_id_lookup is on). */
+.gm-dsd-idlookup { margin: 0 0 var(--gm-pad-sm) 0; }
+.gm-dsd-idlookup-row { display: flex; gap: var(--gm-pad-sm); align-items: center; }
+.gm-dsd-idlookup-row .gm-config-input { flex: 1 1 auto; width: auto; min-width: 0; }
+.gm-dsd-idlookup-msg { margin-top: var(--gm-pad-xs); font-size: var(--gm-fs-sm); color: var(--gm-text-secondary); }
+.gm-dsd-idlookup-msg.is-bad { color: var(--gm-danger); }
+.gm-dsd-idlookup-choice { margin: 2px 4px 2px 0; }

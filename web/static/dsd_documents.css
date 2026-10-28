@@ -1,0 +1,39 @@
+/* DSD documents panel (Open buttons). Tokens only; system sans, no monospace. */
+.gm-dsd-docs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gm-pad-xs);
+  margin: var(--gm-pad-sm) 0;
+}
+.gm-dsd-doc {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--gm-pad-sm);
+  font-family: inherit;
+}
+.gm-dsd-doc-scope {
+  font-size: 11px;
+  color: var(--gm-text-secondary);
+  min-width: 34px;
+}
+.gm-dsd-doc-btn {
+  background: var(--gm-elevated-2-bg);
+  border-color: var(--gm-border);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gm-dsd-doc-badge {
+  font-size: 11px;
+  color: var(--gm-text-secondary);
+  border: 1px solid var(--gm-border);
+  border-radius: var(--gm-radius-sm);
+  padding: 1px 6px;
+}
+.gm-dsd-doc-badge.is-changed {
+  color: #fff;
+  background: var(--gm-danger);
+  border-color: var(--gm-danger);
+}

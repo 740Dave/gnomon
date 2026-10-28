@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gnomon</title>
+  <link rel="icon" type="image/svg+xml" href="/brand/gnomon-mark.svg" />
+  <link rel="stylesheet" href="/static/styles.css" />
+  <link rel="stylesheet" href="/static/dsd_documents.css" />
+</head>
+<body>
+  <!-- Header: the logo slot, left-aligned (design-direction). The brand image is per-workspace
+       DEPLOY data (defaults/branding.json, served at /api/branding/logo; round 5 item 8): branding.js swaps this
+       empty span for the image when the deployment carries one; the neutral tree ships none. -->
+  <header class="gm-header">
+    <!-- Gnomon's own product mark (product asset, /brand/gnomon-dark.svg), then the workspace logo slot. -->
+    <img class="gm-product-mark" src="/brand/gnomon-dark.svg" alt="Gnomon" height="34" width="124" />
+    <span class="gm-logo" id="gm-logo-slot" aria-hidden="true"></span>
+    <span class="gm-header-spacer"></span>
+    <span id="build-info"></span>
+    <span id="golive-info"></span>
+    <span class="gm-hub" id="hub-info">connecting…</span>
+  </header>
+  <!-- the start-time go-live smoke's failing lines (click the chip). -->
+  <div class="gm-golive-detail" id="golive-detail" hidden></div>
+  <!-- confirm-proof F1(c): shown while a SECURITY flag is OFF (textContent only). -->
+  <div class="gm-security-banner" id="security-banner" role="alert" hidden></div>
+
+  <!-- Tab bar: only Agents is live in slice 1; the rest are
+       visible-but-stub, with clean seams for later slices. -->
+  <nav class="gm-tabbar" id="tabbar">
+    <button class="gm-tab is-active" data-tab="intelligences">Agents</button>
+    <button class="gm-tab" data-tab="dsd">DSD</button>
+    <button class="gm-tab" data-tab="decisions">Decisions<span class="gm-tab-stub">soon</span></button>
+    <button class="gm-tab" data-tab="procs">Procedures</button>
+    <button class="gm-tab" data-tab="knowledge">Knowledge</button>
+    <button class="gm-tab" data-tab="config">Configuration</button>
+  </nav>
+
+  <main class="gm-content">
+    <!-- Agents — the live tab -->
+    <section class="gm-panel is-active" id="panel-intelligences">
+      <div class="gm-section-head">
+        <h2>Profiles</h2>
+        <button class="gm-btn" id="btn-refresh">Refresh</button>
+        <span class="gm-status" id="profiles-status"></span>
+      </div>
+      <div class="gm-list" id="profiles-list">
+        <div class="gm-empty">Loading profiles…</div>
+      </div>
+
+      <!-- "Optimize with <optimizer agent>" (the optimizer is deployment data):
+           prompt + copyable command, filled by app.js openDefOptimize. -->
+      <div class="gm-defopt" id="defopt-panel"></div>
+
+      <div class="gm-section-head">
+        <h2>Live sessions</h2>
+        <span class="gm-status" id="sessions-status"></span>
+      </div>
+      <div class="gm-list" id="sessions-list">
+        <div class="gm-empty">Loading sessions…</div>
+      </div>
+    </section>
+
+    <!-- DSD — dual pane: left list of DSDs, right present/browse. -->
+    <section class="gm-panel" id="panel-dsd">
+      <div class="gm-dsd-banner" id="dsd-banner"></div>
+      <div class="gm-dsd">
+        <div class="gm-dsd-left">
+          <div class="gm-section-head">
+            <h2>Decision-Support Documents</h2>
+            <button class="gm-btn" id="dsd-refresh">Refresh</button>
+          </div>
+          <div class="gm-notice-warn" id="dsd-notice-warn" hidden></div>
+          <div class="gm-list gm-dsd-list" id="dsd-list">
+            <div class="gm-empty">Loading DSDs…</div>
+          </div>
+        </div>
+        <div class="gm-dsd-right" id="dsd-detail">
+          <div class="gm-empty">Select a DSD on the left to present or browse it.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stub panels — visible, clearly not-yet-live, seams named. -->
+
+    <section class="gm-panel" id="panel-decisions">
+      <div class="gm-stub">
+        <h2>Decisions</h2>
+        <p>The decision-graph browser. Later slice.</p>
+      </div>
+    </section>
+
+    <!-- PROCs — master/detail over every PROC-typed node, grouped by corpus
+         (lts_find(prefix="PROC") across all registered corpora; /api/procs). -->
+    <section class="gm-panel" id="panel-procs">
+      <div class="gm-gv-banner" id="procs-banner"></div>
+      <div class="gm-gv">
+        <div class="gm-gv-left">
+          <div class="gm-section-head">
+            <h2>Procedures</h2>
+            <button class="gm-btn" id="procs-refresh">Refresh</button>
+          </div>
+          <div class="gm-list gm-gv-list" id="procs-list">
+            <div class="gm-empty">Loading procedures…</div>
+          </div>
+        </div>
+        <div class="gm-gv-right" id="procs-detail">
+          <div class="gm-empty">Select a procedure on the left to read it.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Knowledge — knowledge-engineering completeness panels. Panel (a):
+         the GM-RM-X7 harness usage matrix (/api/usage, read-only; rendered by
+         knowledge_usage.js with textContent only). Gaps are signals, never defects. -->
+    <section class="gm-panel" id="panel-knowledge">
+      <div class="gm-section-head">
+        <h2>Harness usage by lineage</h2>
+        <div class="gm-seg" id="ku-scope">
+          <button class="gm-seg-btn is-active" data-scope="intelligence">Agents</button>
+          <button class="gm-seg-btn" data-scope="all">All lineages</button>
+        </div>
+        <button class="gm-btn" id="ku-refresh">Refresh</button>
+        <span class="gm-status" id="ku-status"></span>
+      </div>
+      <div class="gm-ku-denominator" id="ku-denominator"></div>
+      <div class="gm-ku-matrix" id="ku-matrix">
+        <div class="gm-empty">Loading usage…</div>
+      </div>
+      <div class="gm-ku-never-list" id="ku-never"></div>
+    </section>
+
+    <!-- Configuration — the machine-specific settings, editable + persisted via
+         the reused ConfigController/ConfigStore (GM-DEC-D34 slice 4). -->
+    <section class="gm-panel" id="panel-config">
+      <div class="gm-section-head">
+        <h2>Configuration</h2>
+        <button class="gm-btn" id="config-reload">Reload</button>
+        <button class="gm-btn gm-btn-primary" id="config-save">Save</button>
+        <span class="gm-status" id="config-status"></span>
+      </div>
+      <div class="gm-config-note" id="config-note"></div>
+      <!-- Master-detail: left = the field_groups() titles; right = the selected
+           group's fields (path/text -> input, int -> number, bool -> toggle,
+           multiline -> textarea) plus that group's dedicated surface (custom
+           terminal templates / read-only MCP endpoints). All edited values are
+           held client-side and posted whole through the existing /api/config
+           save path — no config logic is reimplemented in the browser. -->
+      <div class="gm-gv gm-config" id="config-form">
+        <div class="gm-gv-left">
+          <div class="gm-list gm-gv-list" id="config-groups">
+            <div class="gm-empty">Loading configuration…</div>
+          </div>
+        </div>
+        <div class="gm-gv-right" id="config-detail">
+          <div class="gm-empty">Select a settings group on the left.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="gm-toast" id="toast"></div>
+
+  <script src="/static/branding.js"></script>
+  <script src="/static/poll_guard.js"></script>
+  <script src="/static/dsd_draft.js"></script>
+  <script src="/static/dsd_input_activity.js"></script>
+  <script src="/static/def_size.js"></script>
+  <script src="/static/notice_chips.js"></script>
+  <script src="/static/dsd_sections.js"></script>
+  <script src="/static/corpus_tabs.js"></script>
+  <script src="/static/dsd_senttime.js"></script>
+  <script src="/static/dsd_documents.js"></script>
+  <script src="/static/dsd_id_lookup.js"></script>
+  <script src="/static/build_chip.js"></script>
+  <script src="/static/quiescent_chip.js"></script>
+  <script src="/static/idle_snooze_chip.js"></script>
+  <script src="/static/skill_sync_chip.js"></script>
+  <script src="/static/golive_chip.js"></script>
+  <script src="/static/knowledge_usage.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>

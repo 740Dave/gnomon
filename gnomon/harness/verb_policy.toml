@@ -1,0 +1,207 @@
+# Gnomon VERB POLICY (the NEUTRAL default, shipped with the package). redirect 2.
+#
+# Read by gnomon/harness/verb_policy.py (stdlib tomllib).  This file names NO role: who may
+# call a verb without confirming is deployment data.  Two files, in order, each merges onto this one
+# PER VERB: the DEPLOYMENT file <deploy_root>/defaults/verb-policy.toml, then the MACHINE-CONFIG file
+# <runtime_root>/verb-policy.toml.  A [verbs.<name>] table in either replaces that verb's WHOLE
+# table here (so restate `always`, `warning` and every other key you still want), and a verb it
+# does not mention keeps this file's entry.  An override cannot remove a verb; use `others = "deny"`
+# to restrict one.  An override verb name that is not a real verb is reported as INVALID and
+# ignored, and every override entry that narrows access is reported loudly at each launch.  A
+# file that does not parse or validate disables the governed verbs loudly (no fallback to this
+# file) and never breaks a launch.  Editing either file is the operator's call.
+#
+# Per verb:
+#   always  = [ids]     always allowed
+#   others  = "allow" | "confirm-twice" | "deny"     everyone not in `always`
+#   warning = "..."     returned on the FIRST call of a confirm-twice verb ({verb} {target} {what})
+#   confirm_window_seconds = N      optional (default 600, floor 10, ceiling 3600)
+#   when    = [names]   optional, from the closed set of predicates implemented in code
+#   [verbs.<name>.targets.<id>]     optional per-target override (any subset of the keys above)
+#
+# GUARD (tests/test_x30_verb_policy.py): every verb the harness exposes, enumerated from the
+# code (self-verbs, hub MCP tools, operator commands), MUST have an entry here, even if it is
+# just `others = "allow"`.  A new verb without an entry fails the suite, and must also be added to
+# REQUIRED_VERBS in verb_policy.py.
+#
+# Only restart_service is routed through verb_policy.check() today; every other entry below is
+# `allow`, which is exactly the behaviour those verbs have now (unchanged).
+
+schema = 1
+
+# --- the real entry: restart a registered service (D52) ------------------------------------
+# NOBODY is allowlisted by default (the most restrictive neutral choice): every caller may call it,
+# but the first call only returns the warning; a second call with an `ack` reason inside the
+# window proceeds.  A deployment names its allowlist in its own verb-policy file.  With
+# confirm-twice the tool is VISIBLE to every harnessed session when restart_service is ON;
+# only `deny` hides it.
+[verbs.restart_service]
+always = []
+others = "confirm-twice"
+warning = "You're not on the allowlist for {what} and making this call can interrupt in-progress work.  If you have a legitimate need to restart this service, coordinate the restart timing with everyone present who would be affected (people and agents) and then call this verb a second time."
+confirm_window_seconds = 600
+
+# --- self-verbs (gnomon-self MCP) ------------------------------------------------------
+[verbs.request_compact]
+others = "allow"
+
+[verbs.inject]
+others = "allow"
+
+[verbs.context]
+others = "allow"
+
+[verbs.plan_usage]
+others = "allow"
+
+[verbs.memory]
+others = "allow"
+
+[verbs.launch_agent]
+others = "allow"
+
+[verbs.quiesce]
+others = "allow"
+
+[verbs.idle_snooze]
+others = "allow"
+
+[verbs.alert]
+others = "allow"
+
+[verbs.sync_my_skills]
+others = "allow"
+
+[verbs.search_transcript]
+others = "allow"
+
+# pre-review B1: the DSD self-verbs (flag dsd_self_verbs); each acts only as the calling session.
+[verbs.send_dsd]
+others = "allow"
+
+[verbs.my_dsds]
+others = "allow"
+
+[verbs.withdraw_dsd]
+others = "allow"
+
+[verbs.replace_dsd]
+others = "allow"
+
+# (flag agent_mail): scope is the calling agent's own label, enforced server-side.
+[verbs.mail_list]
+others = "allow"
+
+[verbs.mail_read]
+others = "allow"
+
+[verbs.mail_draft]
+others = "allow"
+
+[verbs.mail_to_operator]
+others = "allow"
+
+# --- hub MCP tools (operator-token gated; names shared with the self-verbs above are one entry) ---
+[verbs.send_dsd_for_human_review]
+others = "allow"
+
+[verbs.launch_app]
+others = "allow"
+
+[verbs.list_running_apps]
+others = "allow"
+
+[verbs.terminate_app]
+others = "allow"
+
+# --- the Apps host's seven hub verbs (spec 13; g32, g73-amendment item 1). Agents and the operator may
+# both start and stop apps. There is deliberately NO entry for confirming or
+# declining an install: those are operator-only Apps-tab actions, never an agent verb.
+[verbs.app_list]
+others = "allow"
+
+[verbs.app_status]
+others = "allow"
+
+[verbs.app_start]
+others = "allow"
+
+[verbs.app_stop]
+others = "allow"
+
+[verbs.app_open]
+others = "allow"
+
+[verbs.app_propose_install]
+others = "allow"
+
+[verbs.app_propose_uninstall]
+others = "allow"
+
+# --- the Scheduler's six hub verbs (stage 1a, spec 14; g32). Agents propose; ONLY the operator confirms, in the
+# Scheduler tab (no verb confirms, declines or cancels a confirmed job).
+[verbs.sched_list]
+others = "allow"
+
+[verbs.sched_status]
+others = "allow"
+
+[verbs.sched_propose]
+others = "allow"
+
+[verbs.sched_propose_remove]
+others = "allow"
+
+[verbs.sched_run_now]
+others = "allow"
+
+[verbs.sched_log]
+others = "allow"
+
+# --- operator \commands (the byte-level tap / prompt hook) --------------------------------------
+[verbs.all]
+others = "allow"
+
+[verbs.approve]
+others = "allow"
+
+[verbs.help]
+others = "allow"
+
+[verbs.hooks]
+others = "allow"
+
+[verbs.pause]
+others = "allow"
+
+[verbs.reject]
+others = "allow"
+
+[verbs.resume]
+others = "allow"
+
+[verbs.status]
+others = "allow"
+
+# (g32): the open-work verbs act only on the calling session's own list; operator_status_set is advertised only to the
+# allowed setters (deploy data) and refused to anyone else at call time.
+[verbs.work_add]
+others = "allow"
+
+[verbs.work_update]
+others = "allow"
+
+[verbs.work_done]
+others = "allow"
+
+[verbs.work_drop]
+others = "allow"
+
+[verbs.work_list]
+others = "allow"
+
+[verbs.operator_status_set]
+others = "allow"
+
+[verbs.presence]
+others = "allow"

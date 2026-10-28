@@ -1,0 +1,85 @@
+/* (core): the alert column. Loaded only when alerts is on. Design tokens from styles.css only
+ * (macOS dark, system sans, no monospaced fonts). Top right under the header, like macOS Notification Center. */
+.gm-alerts {
+  position: fixed;
+  top: calc(var(--gm-header-h) + var(--gm-pad-sm));
+  right: var(--gm-pad-lg);
+  z-index: 30;
+  display: none;
+  flex-direction: column;
+  gap: var(--gm-pad-sm);
+  width: min(380px, calc(100vw - 2 * var(--gm-pad-lg)));
+  max-height: calc(100vh - var(--gm-header-h) - 2 * var(--gm-pad-lg));
+  overflow-y: auto;
+  font-family: var(--gm-font);
+}
+.gm-alerts.is-shown { display: flex; }
+/* the DSD arrival banner (unchanged) sits in the same corner: when it is showing, the column moves below it */
+body:has(.gm-dsd-arrival.is-shown) .gm-alerts { top: calc(var(--gm-header-h) + 76px); }
+
+.gm-alerts-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--gm-text-secondary);
+  font-size: var(--gm-fs-sm);
+  padding: 0 var(--gm-pad-xs);
+}
+
+.gm-alert {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--gm-pad-sm);
+  padding: var(--gm-pad-sm) var(--gm-pad-md);
+  background: var(--gm-elevated-2-bg);
+  color: var(--gm-text-primary);
+  border: 1px solid var(--gm-border);
+  border-left: 4px solid var(--gm-accent);
+  border-radius: var(--gm-radius);
+  font-size: var(--gm-fs-sm);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+.gm-alert-info { border-left-color: var(--gm-accent); }
+.gm-alert-warning { border-left-color: #ff9f0a; }   /* macOS orange */
+.gm-alert-error { border-left-color: var(--gm-danger); }
+
+.gm-alert-main { flex: 1 1 auto; min-width: 0; }
+.gm-alert-title { font-weight: 600; overflow-wrap: anywhere; }
+.gm-alert-body { margin-top: var(--gm-pad-xs); color: var(--gm-text-secondary); white-space: pre-wrap; overflow-wrap: anywhere; }
+.gm-alert-meta { margin-top: var(--gm-pad-xs); color: var(--gm-text-placeholder); font-size: 12px; }
+.gm-alert-open { margin-top: var(--gm-pad-sm); }
+
+.gm-alert-close {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  line-height: 20px;
+  text-align: center;
+  background: transparent;
+  color: var(--gm-text-secondary);
+  border: 1px solid var(--gm-border);
+  border-radius: 50%;
+  font-size: 16px;
+  cursor: pointer;
+}
+.gm-alert-close:hover { background: var(--gm-elevated-bg); color: var(--gm-text-primary); }
+
+.gm-alerts-failures {
+  font-size: 12px;
+  color: var(--gm-text-secondary, #b8b8bd);
+  padding: 4px 8px;
+}
+
+.gm-alerts-more {
+  align-self: center;
+  background: var(--gm-elevated-bg);
+  color: var(--gm-text-secondary);
+  border: 1px solid var(--gm-border);
+  border-radius: var(--gm-radius-sm);
+  padding: var(--gm-pad-xs) var(--gm-pad-md);
+  font-size: var(--gm-fs-sm);
+  cursor: pointer;
+}
+.gm-alerts-more:hover { color: var(--gm-text-primary); }

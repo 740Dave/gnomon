@@ -1,0 +1,595 @@
+{
+ "schema": 1,
+ "layers": [
+  "machine",
+  "workspace",
+  "launch-config",
+  "session"
+ ],
+ "layer-order": "machine < workspace < launch-config < session (later wins); a key is settable only at the layers in its scope-floor",
+ "note": "AUTHORITATIVE settings registry (GM-WSM-ENT-SETTINGS `registry`): ships READ-ONLY with the package; DEPLOY holds only value overrides. MACHINE-READ under g25 by gnomon.workspace.settings_registry (floor: at least 30 settings). Every default is checked equal to the dataclass default in config.py / profile.py by tests/test_x13s1_settings_registry.py, so a read site never needs its own default (I7). Adding a config/profile key without a row here fails that test.",
+ "settings": {
+  "project_root": {
+   "type": "string",
+   "default": "~/gnomon",
+   "scope-floor": [
+    "machine"
+   ],
+   "keys": {
+    "machine": "project_root"
+   },
+   "description": "Root of the dashboard project tree."
+  },
+  "runtime_root": {
+   "type": "string",
+   "default": "~/gnomon-data",
+   "scope-floor": [
+    "machine"
+   ],
+   "keys": {
+    "machine": "runtime_root"
+   },
+   "description": "DATA root today (agents/, sessions/, hub/, notices/)."
+  },
+  "deploy_root": {
+   "type": "string",
+   "default": "~/gnomon-deploy.provisional",
+   "scope-floor": [
+    "machine"
+   ],
+   "keys": {
+    "machine": "deploy_root"
+   },
+   "description": "DEPLOY root (provisional name; the pilot's rename is a one-line change of this default). Read only through workspace.deploy."
+  },
+  "claude_bin": {
+   "type": "string",
+   "default": "~/.claude/local/claude",
+   "scope-floor": [
+    "machine"
+   ],
+   "keys": {
+    "machine": "claude_bin"
+   },
+   "description": "Path of the claude binary; launch.json carries the resolved copy (run state)."
+  },
+  "terminal": {
+   "type": "string",
+   "default": "iterm2",
+   "scope-floor": [
+    "machine",
+    "launch-config"
+   ],
+   "keys": {
+    "machine": "default_terminal",
+    "launch-config": "terminal"
+   },
+   "description": "Terminal launch-template key."
+  },
+  "custom_terminal_templates": {
+   "type": "object",
+   "default": {},
+   "scope-floor": [
+    "machine"
+   ],
+   "keys": {
+    "machine": "custom_terminal_templates"
+   },
+   "description": "User-added named terminal command templates."
+  },
+  "mcp_servers": {
+   "type": "array",
+   "default": [
+    "lts-engine",
+    "gnomon"
+   ],
+   "scope-floor": [
+    "machine",
+    "launch-config"
+   ],
+   "keys": {
+    "machine": "default_mcp_servers",
+    "launch-config": "mcp_servers"
+   },
+   "description": "MCP server set wired into .mcp.json."
+  },
+  "mcp_endpoints": {
+   "type": "object",
+   "default": {
+    "lts-engine": {
+     "type": "stdio",
+     "command": "lts-engine"
+    },
+    "gnomon": {
+     "type": "http",
+     "url": null,
+     "_note": "hub MCP url wired at launch by the host/GUI"
+    }
+   },
+   "scope-floor": [
+    "machine"
+   ],
+   "keys": {
+    "machine": "mcp_endpoints"
+   },
+   "description": "MCP server endpoint catalog."
+  },
+  "model": {
+   "type": "string",
+   "default": "",
+   "scope-floor": [
+    "machine",
+    "launch-config"
+   ],
+   "keys": {
+    "machine": "default_model",
+    "launch-config": "model"
+   },
+   "description": "Model the session runs on ('' = the claude default)."
+  },
+  "context_thresholds": {
+   "type": "array",
+   "default": [
+    90,
+    95
+   ],
+   "scope-floor": [
+    "machine",
+    "launch-config"
+   ],
+   "keys": {
+    "machine": "context_thresholds",
+    "launch-config": "context_thresholds"
+   },
+   "description": "Context-monitor thresholds (percent); the launch-config layer overrides when non-empty (launch-config default null = inherit)."
+  },
+  "bootstrap_prompt": {
+   "type": "string",
+   "default": "",
+   "scope-floor": [
+    "machine",
+    "launch-config"
+   ],
+   "keys": {
+    "machine": "default_bootstrap_prompt",
+    "launch-config": "bootstrap_prompt"
+   },
+   "description": "Cold-start prompt passed as argv."
+  },
+  "dsd_answers_corpus_path": {
+   "type": "string",
+   "default": "",
+   "scope-floor": [
+    "machine"
+   ],
+   "keys": {
+    "machine": "dsd_answers_corpus_path"
+   },
+   "description": "DSD answers corpus file ('' = derived under runtime_root)."
+  },
+  "user_name": {
+   "type": "string",
+   "default": "",
+   "scope-floor": [
+    "machine"
+   ],
+   "keys": {
+    "machine": "user_name"
+   },
+   "description": "Display name that signs operator messages ('' = the OS login)."
+  },
+  "stall_inject": {
+   "type": "object|null",
+   "default": null,
+   "scope-floor": [
+    "machine",
+    "launch-config"
+   ],
+   "keys": {
+    "machine": "stall_inject",
+    "launch-config": "stall_inject"
+   },
+   "description": "Stall-inject override (null = built-in defaults)."
+  },
+  "hook_manifest": {
+   "type": "object",
+   "default": {},
+   "scope-floor": [
+    "machine"
+   ],
+   "keys": {
+    "machine": "hook_manifest"
+   },
+   "description": "Hook manifest {point: [handler]}."
+  },
+  "operator_command_plane": {
+   "type": "boolean",
+   "default": true,
+   "scope-floor": [
+    "machine"
+   ],
+   "keys": {
+    "machine": "operator_command_plane"
+   },
+   "description": "The backslash operator command plane toggle."
+  },
+  "agent_launch_enabled": {
+   "type": "boolean",
+   "default": false,
+   "scope-floor": [
+    "machine",
+    "launch-config"
+   ],
+   "keys": {
+    "machine": "agent_launch_enabled",
+    "launch-config": "agent_launch_enabled"
+   },
+   "description": "May agents launch agents (needs both layers). Security posture.",
+   "restrictive-on-skip": true,
+   "restrictive-value": false
+  },
+  "guard_fail_closed": {
+   "type": "boolean",
+   "default": true,
+   "scope-floor": [
+    "machine"
+   ],
+   "keys": {
+    "machine": "guard_fail_closed"
+   },
+   "description": "GM-RM-X79: with the deny guard unable to start (a missing interpreter, an import or syntax error) a Bash/Edit call is BLOCKED (ON, the default) or allowed after a log line (OFF). Read at session launch. Security posture: turning it OFF needs the presence check."
+  },
+  "lts_macro_budget": {
+   "type": "integer|null",
+   "default": null,
+   "scope-floor": [
+    "machine"
+   ],
+   "keys": {
+    "machine": "lts_macro_budget"
+   },
+   "description": "Per-macro lts budget, approximate tokens (null = off)."
+  },
+  "post_compact_boot": {
+   "type": "object|null",
+   "default": null,
+   "scope-floor": [
+    "machine"
+   ],
+   "keys": {
+    "machine": "post_compact_boot"
+   },
+   "description": "Post-compact boot prompt texts and timing (null = package defaults)."
+  },
+  "otel_endpoint": {
+   "type": "string",
+   "default": "",
+   "scope-floor": [
+    "machine"
+   ],
+   "keys": {
+    "machine": "otel_endpoint"
+   },
+   "description": "OTLP collector base URL ('' = export nothing).",
+   "restrictive-on-skip": true,
+   "restrictive-value": ""
+  },
+  "otel_protocol": {
+   "type": "string",
+   "default": "http/protobuf",
+   "scope-floor": [
+    "machine"
+   ],
+   "keys": {
+    "machine": "otel_protocol"
+   },
+   "description": "OTLP protocol."
+  },
+  "services": {
+   "type": "object|null",
+   "default": null,
+   "scope-floor": [
+    "machine"
+   ],
+   "keys": {
+    "machine": "services"
+   },
+   "description": "restart_service registry (null = shipped default). Security posture: the pilot's call.",
+   "restrictive-on-skip": true,
+   "restrictive-value": null
+  },
+  "transcript_archive_subagents": {
+   "type": "string",
+   "default": "all",
+   "scope-floor": [
+    "machine"
+   ],
+   "keys": {
+    "machine": "transcript_archive_subagents"
+   },
+   "description": "GM-RM-X8: which subagent transcripts the durable transcript archive keeps: all (default) | none. flagged-only is undefined in the spec and is read as all."
+  },
+  "apps_port_range": {
+   "type": "array|null",
+   "default": null,
+   "scope-floor": [
+    "machine"
+   ],
+   "keys": {
+    "machine": "apps_port_range"
+   },
+   "description": "GM-APPS: the Apps host's fallback port range [low, high] (null = not set; the range is an OPEN question, so a proposal that needs it is refused)."
+  },
+  "display_name": {
+   "type": "string",
+   "default": "",
+   "scope-floor": [
+    "launch-config"
+   ],
+   "keys": {
+    "launch-config": "display_name"
+   },
+   "description": "Human-facing role label."
+  },
+  "identity_class": {
+   "type": "string",
+   "default": "domain_agent",
+   "scope-floor": [
+    "launch-config"
+   ],
+   "keys": {
+    "launch-config": "identity_class"
+   },
+   "description": "Identity class (carried, not interpreted)."
+  },
+  "claude_md_source": {
+   "type": "string",
+   "default": "",
+   "scope-floor": [
+    "launch-config"
+   ],
+   "keys": {
+    "launch-config": "claude_md_source"
+   },
+   "description": "Role-definition source path (S3: becomes workspaces/<home>/roles/<id>.md)."
+  },
+  "extra_args": {
+   "type": "array",
+   "default": [],
+   "scope-floor": [
+    "launch-config"
+   ],
+   "keys": {
+    "launch-config": "extra_args"
+   },
+   "description": "Extra claude CLI args."
+  },
+  "confirm_compact": {
+   "type": "boolean",
+   "default": false,
+   "scope-floor": [
+    "launch-config"
+   ],
+   "keys": {
+    "launch-config": "confirm_compact"
+   },
+   "description": "Compaction-start confirmer on/off."
+  },
+  "confirm_compact_timeout": {
+   "type": "number|null",
+   "default": null,
+   "scope-floor": [
+    "launch-config"
+   ],
+   "keys": {
+    "launch-config": "confirm_compact_timeout"
+   },
+   "description": "Confirmer timeout seconds (null = harness default)."
+  },
+  "resume_session_id": {
+   "type": "string|null",
+   "default": null,
+   "scope-floor": [
+    "launch-config",
+    "session"
+   ],
+   "keys": {
+    "launch-config": "resume_session_id"
+   },
+   "description": "claude session UUID to --resume (null = cold start)."
+  },
+  "resume_cwd": {
+   "type": "string|null",
+   "default": null,
+   "scope-floor": [
+    "launch-config",
+    "session"
+   ],
+   "keys": {
+    "launch-config": "resume_cwd"
+   },
+   "description": "The resumed session's original cwd."
+  },
+  "resume_prompt": {
+   "type": "string|null",
+   "default": null,
+   "scope-floor": [
+    "launch-config",
+    "session"
+   ],
+   "keys": {
+    "launch-config": "resume_prompt"
+   },
+   "description": "Re-orient turn after --resume."
+  },
+  "personality_corpus_path": {
+   "type": "string|null",
+   "default": null,
+   "scope-floor": [
+    "launch-config"
+   ],
+   "keys": {
+    "launch-config": "personality_corpus_path"
+   },
+   "description": "Personality lifelog file ('null' = by convention)."
+  },
+  "personality_prefix": {
+   "type": "string|null",
+   "default": null,
+   "scope-floor": [
+    "launch-config"
+   ],
+   "keys": {
+    "launch-config": "personality_prefix"
+   },
+   "description": "Personality node-id prefix."
+  },
+  "skill_corpus": {
+   "type": "string|null",
+   "default": null,
+   "scope-floor": [
+    "launch-config"
+   ],
+   "keys": {
+    "launch-config": "skill_corpus"
+   },
+   "description": "GM-RM-X49: the one lts corpus this agent's sync_my_skills verb may project skills from (null = unknown = the verb refuses)."
+  },
+  "env_passthrough": {
+   "type": "array|null",
+   "default": null,
+   "scope-floor": [
+    "launch-config"
+   ],
+   "keys": {
+    "launch-config": "env_passthrough"
+   },
+   "description": "Exact env var names the child may inherit despite the credential scrub (null = scrub all).",
+   "restrictive-on-skip": true,
+   "restrictive-value": null
+  },
+  "agent_launch": {
+   "type": "object",
+   "default": {
+    "max_depth": 1,
+    "max_children": 2
+   },
+   "scope-floor": [
+    "launch-config"
+   ],
+   "keys": {
+    "launch-config": "agent_launch"
+   },
+   "description": "Child-agent spawn caps {max_depth, max_children}. NAME-COLLISION NOTE: 'agent launch' is a live identifier; the launch-config concept deliberately does not use this stem (GM-WSM-ENT-AGENT-LAUNCH-CONFIG name-collision)."
+  },
+  "machine_duty_role": {
+   "type": "string",
+   "default": "",
+   "scope-floor": [
+    "machine"
+   ],
+   "keys": {
+    "machine": "machine_duty_role"
+   },
+   "description": "The ONE machine-duty role (D51 D5 / T16): receives burn-down and stale-job notices. '' = unset: every notice escalates to the operator (T16 machine-duty-fallback).",
+   "machine-only": true
+  },
+  "timezone": {
+   "type": "string",
+   "default": "UTC",
+   "scope-floor": [
+    "machine"
+   ],
+   "keys": {
+    "machine": "timezone"
+   },
+   "description": "IANA timezone; a timeline 'day' is the local day in this zone (ENT-TIMELINE-ENTRY).",
+   "machine-only": true
+  },
+  "default_project": {
+   "type": "string",
+   "default": "",
+   "scope-floor": [
+    "launch-config",
+    "session"
+   ],
+   "keys": {
+    "launch-config": "default-project"
+   },
+   "description": "'<ws>/<slug>' the session's current-project starts as when no earlier run supplies one (ENT-SESSION-RUN current-project-initial). '' = none."
+  },
+  "event_log_path": {
+   "type": "string",
+   "default": "events/events.jsonl",
+   "scope-floor": [
+    "machine"
+   ],
+   "keys": {
+    "machine": "event_log_path"
+   },
+   "description": "Machine event log (append-only JSON lines; ENT-ALERT-EVENT). Machine-only (I6). A RELATIVE value (the default) resolves under the DATA root (the runtime_root setting), so the log lives at <DATA>/events/events.jsonl; an absolute value is used as given (architect ruling 11, X13 S2)."
+  },
+  "confidential": {
+   "type": "boolean",
+   "default": false,
+   "scope-floor": [
+    "workspace"
+   ],
+   "keys": {
+    "workspace": "confidential"
+   },
+   "description": "GM-RM-X98: a confidential workspace. For a session whose home workspace has this ON, the waiting-on-operator alert and the dashboard badge name only the agent and the dialog kind: no command text and no question text. Read by the alert path (gnomon.harness.waiting_alert.read_confidential) each time it builds an alert; that reader treats a missing or unreadable workspace record as confidential (not through restrictive-on-skip: that set is pinned by tests/test_x13s2_settings_resolver.py and is unchanged)."
+  }
+ },
+ "flag-family": {
+  "machine-key": "flags",
+  "launch-config-key": "flags",
+  "registry": "gnomon.flags.KNOWN_FLAGS",
+  "scope-floor": [
+   "machine",
+   "launch-config"
+  ],
+  "note": "Flags are read ONLY through flags.flag(); each flag's default lives in KNOWN_FLAGS (one default). Not duplicated row-by-row here on purpose: a duplicate is a second default."
+ },
+ "run-state-keys": {
+  "note": "Keys the launcher/harness WRITES into a session's launch.json that are run STATE, not settings: not layered, not operator-settable. A launch.json key that is neither a setting alias (settings[*].keys) nor listed here fails the real-writer test.",
+  "keys": {
+   "instance_id": "identity: the role id",
+   "session_dir": "derived at launch",
+   "session_id": "claude session UUID (conversation key)",
+   "hub_rendezvous_port": "runtime",
+   "agent_depth": "child-spawn depth, runtime",
+   "launched_by": "provenance of the launch",
+   "accept_folder_trust": "launcher behaviour switch written at launch",
+   "operator_command_route": "runtime route",
+   "prompt_command_hook_installed": "runtime marker",
+   "agent_def_delivery": "render result",
+   "agent_def_event": "render result",
+   "agent_def_expansion": "render result",
+   "agent_def_path": "render result",
+   "agent_def_rendered_at": "render result",
+   "agent_def_renders": "render result",
+   "agent_def_source": "render result",
+   "transcript_cwd": "transcript state",
+   "transcript_exit_check": "transcript state",
+   "transcript_link": "transcript state",
+   "transcript_live_pointer": "transcript state",
+   "transcript_mode": "transcript state",
+   "transcript_path": "transcript state",
+   "transcript_project_dir": "transcript state",
+   "transcript_recorded_at": "transcript state",
+   "transcript_unknown_reason": "transcript state",
+   "previous_session_ids": "transcript chain state",
+   "build_id": "build stamp state (GM-RM-1A), written by the launcher at launch",
+   "build_scope": "build stamp state (GM-RM-1A), written by the launcher at launch",
+   "build_scope_version": "build stamp state (GM-RM-1A), written by the launcher at launch",
+   "build_stamp": "build stamp state (GM-RM-1A), written by the launcher at launch"
+  }
+ },
+ "planned-machine-only": [
+  "usage thresholds",
+  "UPS policy",
+  "relaunch policy"
+ ],
+ "planned-note": "GM-WSM-ENT-SETTINGS names these machine-only keys but none exists in code today; each is registered by the slice that builds its read site (S2+). A key read before it is registered fails the I7 test. S2 registered event_log_path (its read site is workspace.events via the settings resolver)."
+}
