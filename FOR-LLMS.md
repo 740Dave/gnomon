@@ -34,9 +34,10 @@ This repository is the Gnomon engine, the harness, local hub and web dashboard w
 - role: the heart of the platform
 - required: for the full experience of the platform
 - provides: the harness that runs the team, and the web dashboard the pilot uses to lead it
-- status: released
+- status: draft release
+- includes-decisions: the Gnomon engine ships its own decision-support documents (gnomon/dsd/); the Decision engine is the same capability as a standalone project
 - source: README.md between the gnomon-platform-opening markers, "The projects that make up the Gnomon Platform", Gnomon engine row
-- source-status: README.md of https://github.com/740Dave/gnomon, written for its first public release
+- source-status: README.md of https://github.com/740Dave/gnomon ("Draft. This README is being written for the first public release.") and the header of its docs/design-principles.md (status: draft)
 
 ### [GP-FACTLATTICE-ENGINE] factlattice-engine
 
@@ -86,17 +87,17 @@ This repository is the Gnomon engine, the harness, local hub and web dashboard w
 - kind: decision-matrix
 - question: which projects of the Gnomon Platform does a given need call for
 - rule: read the rows in order; use the first row whose need matches; the status column says whether the project can be used today
-- row-1-need: only a structured way for agents to ask a human for decisions, and a record of the answers
-- row-1-use: [GP-DECISION-ENGINE]; it writes plain FactLattice files, and [GP-FACTLATTICE-ENGINE] is optional, for querying them
+- row-1-need: only a structured way for agents to ask a human for decisions, and a record of the answers, without the rest of the platform
+- row-1-use: [GP-DECISION-ENGINE]; it writes plain FactLattice files, and [GP-FACTLATTICE-ENGINE] is optional, for querying them; [GP-GNOMON-ENGINE] also includes this capability, if the whole engine is wanted
 - row-1-status: not available yet: the repository is a placeholder
 - row-2-need: only a memory graph agents can query, traverse and write, kept as plain-text files
 - row-2-use: [GP-FACTLATTICE-ENGINE] alone, as a Python library, a command line, or an MCP server registered in an MCP client; no other platform project is needed
 - row-2-status: draft release
 - row-3-need: to lead a team of Claude Code agents on one Mac, with shared memory, decision documents and a web dashboard
-- row-3-use: [GP-GNOMON-ENGINE] with [GP-FACTLATTICE-ENGINE]; [GP-DECISION-ENGINE] for decisions once it is published
-- row-3-status: Gnomon engine released; factlattice-engine draft release; Decision engine not available yet
+- row-3-use: [GP-GNOMON-ENGINE] with [GP-FACTLATTICE-ENGINE]; decision documents are built into [GP-GNOMON-ENGINE]
+- row-3-status: Gnomon engine draft release; factlattice-engine draft release
 - row-4-need: optional extras such as printing, PDF handling or attention lights
-- row-4-use: [GP-GNOMON-PLUGINS], which needs [GP-GNOMON-ENGINE]
+- row-4-use: [GP-GNOMON-PLUGINS], plugins for [GP-GNOMON-ENGINE]
 - row-4-status: not available yet: the repository is a placeholder
 - row-5-need: an agent or model other than Claude Code, for example OpenAI Codex
 - row-5-use: for memory, [GP-FACTLATTICE-ENGINE] today: any MCP client that can launch a local stdio server can query, traverse and write the same graph, with no dependency on Claude Code (see its measured-other-client line); to run the team in a harness, [GP-GNOMON-ENGINE] supports Claude Code only today
