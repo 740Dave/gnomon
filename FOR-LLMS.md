@@ -180,7 +180,7 @@ This repository is the Gnomon engine, the harness, local hub and web dashboard w
 
 ## [GNE-TESTS] Tests
 
-- run: `pip install -e '.[test]'`, then `pytest` from the repository root
+- run: `pip install -e '.[test]'`, then `python -m pytest` from the repository root (the README text says `pytest`; the counts below were measured with `python -m pytest`)
 - scope: a public subset of the project's own tests
 - external-needs: none; no live Claude Code install, no browser, no network beyond loopback
 - web-tests: collected only with the `web-test` extra (`pip install -e '.[web-test]'`)
@@ -251,7 +251,7 @@ This repository is the Gnomon engine, the harness, local hub and web dashboard w
 - answer-record: whether the answer followed the recommendation, plus any comment the pilot added
 - answer-notice: fixed template filled only with strictly validated identifiers
 - related-project: GP-DECISION-ENGINE
-- source: README.md lines 22, 42; docs/design-principles.lts EP-GN-2, DP-GN-7, DP-GN-12
+- source: README.md lines 24, 42; docs/design-principles.lts EP-GN-2, DP-GN-7, DP-GN-12
 
 ## [GNE-AGENT-DEFINITIONS] Agent definitions
 
@@ -260,7 +260,7 @@ This repository is the Gnomon engine, the harness, local hub and web dashboard w
 - failure-rule: a failed expansion is shown loudly; the renderer reports every outcome other than success to the session and the pilot
 - memory-location: the agent's own factlattice-engine corpus; each agent writes only to its own, by convention
 - shared-text: one included fragment, never pasted copies
-- source: README.md lines 43, 77; docs/design-principles.lts GN-GLOSSARY (agent-definition), DP-GN-21
+- source: README.md lines 43, 79; docs/design-principles.lts GN-GLOSSARY (agent-definition), DP-GN-21
 
 ## [GNE-USES-FACTLATTICE-ENGINE] How Gnomon uses factlattice-engine
 
@@ -279,7 +279,7 @@ This repository is the Gnomon engine, the harness, local hub and web dashboard w
 - rendering-digest-budget: with `budget=N` (approximate tokens, characters divided by 4) entries are withheld whole, never cut mid-entry; one overflow line names how many were shown and the `lts_find(..., tier="digest")` call for the rest, and the digest footer then says it is not complete (gnomon/lts_expand.py:36-45, gnomon/lts_expand.py:558-561, gnomon/lts_expand.py:591-611)
 - rendering-moments: the definition is re-rendered at launch, resume, spawn and before a compaction, each as a new numbered file that is never overwritten, plus the delivered `.claude/CLAUDE.md` (gnomon/agent_def.py:3-8, gnomon/agent_def.py:17-22)
 - freshness: each query goes to an engine built with `self_heal=True`; a stale corpus that cannot be healed, or a truncated (incomplete) result, is a failure, never a partial expansion (gnomon/lts_expand.py:357-362, gnomon/lts_expand.py:459-464)
-- failure-banner: a marker whose expansion fails (registry unresolved, engine not importable or not buildable, corpus unregistered or stale, malformed query, or zero matches) is replaced in the rendered text by a visible line: `lts expansion FAILED for <query>: <reason> - your memory was NOT loaded; read <corpus files> directly and flag it to the pilot` (gnomon/lts_expand.py:77-85, gnomon/lts_expand.py:279-284, gnomon/lts_expand.py:514-517)
+- failure-banner: a marker whose expansion fails (registry unresolved, engine not importable or not buildable, corpus unregistered or stale, malformed query, or zero matches) is replaced in the rendered text by a visible line: `lts expansion FAILED for <query>: <reason> — your memory was NOT loaded; read <corpus files> directly and flag it to the pilot` (gnomon/lts_expand.py:77-85, gnomon/lts_expand.py:279-284, gnomon/lts_expand.py:514-517)
 - failure-zero-is-failure: zero matches is a failure unless the marker says `empty=ok`, which renders a visible "0 nodes matched" notice instead; engine, registry and corpus failures still fail loudly under `empty=ok` (gnomon/lts_expand.py:54-57, gnomon/lts_expand.py:469-478)
 - failure-in-rendered-file: the header of the rendered file carries `lts_expansion=<status>`, and when any expansion failed it adds a line saying how many failed and that "that memory was NOT loaded" (gnomon/agent_def.py:157-174, gnomon/agent_def.py:436-448)
 - failure-recorded: the render, its expansion status and every failure are also written to the session's `launch.json` and its provenance log (gnomon/agent_def.py:12-14)
@@ -296,7 +296,7 @@ This repository is the Gnomon engine, the harness, local hub and web dashboard w
 - other-readers: the graph viewer also builds the engine's store in-process and queries it (gnomon/app/graph_viewer.py:102-103)
 - files-not-harness-bound: the memory files, DSD answers and the data that agent definitions pull in at render time are plain FactLattice `.lts` files (memory: `agents/<id>/personality/lifelog.lts`, gnomon/memory.py:3-8 and gnomon/memory.py:106; DSD answers: one `<id>.lts` file each, gnomon/dsd/writer.py:12-14 and gnomon/dsd/answers_reader.py:1-8; definition data read at render: gnomon/lts_expand.py:11-13); any MCP client that can launch a local stdio server can read them through factlattice-engine (the server is registered as a stdio command, gnomon/config.py:169; README.md line 62); it is the Gnomon harness that runs Claude Code, not these files
 - optional-dependency: if the engine cannot be imported, the DSD writer and the graph viewer report an error, and the renderer shows the failure banner; the headless core does not need it (README.md line 61; gnomon/lts_expand.py:77-85)
-- tests-in-this-repo: this repository's public tests exercise the DSD writer and reader (for example tests/test_dsd_answers_reader.py, tests/test_dsd_live.py, tests/test_dsd_answer_header_id.py); no test file here imports `gnomon.lts_expand` or `LtsExpander`, so the macro expansion and the memory write are built but not covered by this repository's public tests (searched: tests/ for `lts_expand`, `LtsExpander`, `render_agent_def`; positive control: the same search for `deny_guard` finds files)
+- tests-in-this-repo: this repository's public tests exercise the DSD writer and reader (for example tests/test_dsd_answers_reader.py, tests/test_dsd_live.py, tests/test_dsd_answer_header_id.py); the macro expander (`gnomon/lts_expand.py`) has no public test (no file in `tests/` mentions `lts_expand` or `LtsExpander`); the memory-recording function (`gnomon/memory.py`) and the rendering function (`gnomon/agent_def.py`) are not called by any public test, although tests import those two modules for other functions (tests/test_compact_ignored_readers.py:22 imports `last_compaction`; tests/test_relaunch_strip_derived_keys.py:185 imports `edit_launch_json`); positive control for the search: `deny_guard` is mentioned in 70 lines under `tests/`
 - not-confirmed-in-public-code: that the next query of a running `lts-engine` server sees a memory or answer written by Gnomon is a property of factlattice-engine (stated in its README), not shown by any code in this repository; Gnomon's own check is the read-back and live check above
 - source: the file:line pointers in each line, at the commit that carries this file
 
@@ -345,7 +345,7 @@ This repository is the Gnomon engine, the harness, local hub and web dashboard w
 - registry: `gnomon/flags.py`; every flag has one declared default in one registry; no reading code supplies its own default
 - inspection: effective value inspectable with the layer it came from; Config tab lists every flag with description and state
 - setting: machine config `"flags"` key
-- security-controls: on from the start; by default no off switch; where a deployment keeps one it defaults to on and a missing setting reads as on, and that switch is a known limit
+- security-controls: on from the start; the design principle says that by default a security control has no off switch, and that where a deployment keeps one it defaults to on and a missing setting reads as on (docs/design-principles.lts:247, DP-GN-8); in the code, the two security flags `confirm_proof` and `dsd_submit_proof` and the top-level setting `guard_fail_closed` do have an off switch: the Config tab can turn one off only after a passed human-presence check, an agent write to the machine config is denied by the harness deny layer, and the server shows a visible warning while one is off (gnomon/flags.py:54-63; gnomon/config.py:507-520; web/backend/server.py:2953-2975); that switch is a known limit
 - lasting-state: a flag whose on path writes lasting state says what turning it off does with that state
 - specified-but-off: hub credential binding (DP-GN-6); several self-verbs and definition-derived self-verbs (DP-GN-5)
 - source: README.md lines 47, 67; docs/design-principles.lts GN-PRINCIPLES status, GN-GLOSSARY (flag), DP-GN-8
@@ -382,7 +382,8 @@ This repository is the Gnomon engine, the harness, local hub and web dashboard w
 - hook-imports: do no work at import time; the imported set is tracked
 - concurrency-claims: stated as a failure rate over many runs
 - rules: recorded in the open; a changed rule keeps its old text marked with its replacement
-- neutrality: code and tests carry no deployment-specific names, roles, brands or data; a neutrality test enforces it
+- neutrality: the design principles state that the code and tests carry no deployment-specific names, roles, brands or data, and that a neutrality test fails if a deployment-specific entry appears (docs/design-principles.lts:326-330, DP-GN-15); this repository contains no such test (searched `tests/` and the file list at 7b9847c), because most of the project's own tests are not part of this export (README.md line 106)
+- process-scope: the lines above are the project's stated practice (docs/design-principles.lts, DP-GN-9, DP-GN-15, DP-GN-23); none of them is an artefact a reader can check from this repository
 - source: docs/design-principles.lts DP-GN-9, DP-GN-15, DP-GN-23
 
 ## [GNE-FILE-MAP] File map
@@ -400,4 +401,4 @@ This repository is the Gnomon engine, the harness, local hub and web dashboard w
 - web-subdirectories: `web/backend/`, `web/static/`, `web/alerts_ui/`, `web/apps_ui/`, `web/guard_banner_ui/`, `web/ledger_ui/`, `web/mail_ui/`, `web/scheduler_ui/`, `web/work_ui/`
 - tests: `tests/`
 - other: `scripts/`, `assets/brand/`
-- source: file tree of commit 7b9847c (`git ls-tree -r --name-only`); roles from README.md lines 50-51, 59-60, 81, 47, 103
+- source: file tree of commit 7b9847c (`git ls-tree -r --name-only`); roles from README.md lines 51, 59-60, 81, 47, 103
