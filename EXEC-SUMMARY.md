@@ -25,7 +25,7 @@ public release (`README.md`, the "Draft" notice), and it is built for one person
 ## Terms used here
 
 - **Pilot:** the person who runs Gnomon and the agent sessions on their machine (`docs/design-principles.lts`, glossary).
-- **Harness:** the small process between an agent session and your terminal; it carries everything in and out of the session.
+- **Harness:** the small process between an agent session and your terminal; it carries the session's traffic in and out. The pilot's own keystrokes and one start-up prompt handler pass without the harness's text gate (`docs/design-principles.lts:171`).
 - **Hub:** the local service every harnessed session connects to; it carries messages and tool calls between sessions, the dashboard and you.
 - **FactLattice and `.lts` files:** structured plain-text files with headings, ids and properties, kept as team memory, specs and decisions. **factlattice-engine** is the separate project that indexes and queries them; its service name is `lts-engine` (`README.md` line 62; glossary).
 - **MCP server and "stdio":** a tool server that an agent program can call. A "stdio" server is started as a command and talks over its standard input and output; Gnomon registers `lts-engine` that way (`gnomon/config.py:169`). "Any MCP client able to launch a local stdio server" means any agent program that can start such a command.
@@ -78,7 +78,7 @@ site and be recorded with its source (`README.md`, "What it is"; `docs/design-pr
 record is `ProvenanceLog` in `gnomon/harness/hooks.py:584`). The principles state their own exceptions:
 the pilot's own keystrokes, and one start-up prompt handler, are not gated; and when the record cannot be
 written, harness-initiated text is not typed, but other injections still go ahead with a counter and a
-warning (`docs/design-principles.lts:171`; `FOR-LLMS.md`, `GNE-HARNESS`). This summary repeats those
+warning (`docs/design-principles.lts:171` for the exemptions and `docs/design-principles.lts:350` for the record-fault path; `FOR-LLMS.md`, `GNE-HARNESS`). This summary repeats those
 statements; the write site was not traced in code for it. The harness holds its own text back while you
 have a half-typed line or a dialog open. A guard on shell commands and file edits refuses a small set of
 dangerous ones. Reporting status "only from evidence about the live object" (`docs/design-principles.lts`,
@@ -99,17 +99,20 @@ tests; it covers, among much else, the decision-document writer and reader
 (`tests/test_dsd_answers_reader.py`, `tests/test_dsd_live.py`) and the deny guard (`tests/test_confirm_proof_deny_guard.py`).
 The measured result is in `README.md`, "Tests", and is described under "How to check" below.
 
-**Built, but not covered by this repository's public tests.** The macro expander that renders agent
-definitions (`gnomon/lts_expand.py`) has no public test: no file in `tests/` mentions `lts_expand` or
-`LtsExpander`. The memory-recording function (`gnomon/memory.py`) and the definition-rendering function
-(`gnomon/agent_def.py`) are not called by any public test either, although tests import those two modules
-for other functions (`tests/test_compact_ignored_readers.py:22` imports `last_compaction`;
+**Built, but not covered by this repository's public tests.** Scoped to what was searched in `tests/`:
+the macro expander that renders agent definitions (`gnomon/lts_expand.py`) has no public test (no file
+mentions `lts_expand` or `LtsExpander`), and the memory-recording function (`gnomon/memory.py`) has none
+either. Definition rendering (`gnomon/agent_def.py`) is reached by one public test, and only through the
+launcher with a definition that has no macros in it
+(`tests/test_x13s1_settings_registry.py:95-107`, calling `render_agent_def` at `gnomon/launch.py:366`), so
+macro expansion is not exercised there. Other tests import `gnomon.memory` and `gnomon.agent_def` for other
+functions (`tests/test_compact_ignored_readers.py:22` imports `last_compaction`;
 `tests/test_relaunch_strip_derived_keys.py:185` imports `edit_launch_json`). So you cannot run a check of
-the rendering or the memory write from here. The project's other tests are not part of this export
+macro expansion or of the memory write from here. The project's other tests are not part of this export
 (`README.md`, "Differences from the internal build").
 
 **Specified but off by default.** New behaviour ships behind a flag. Of the 66 registered flags, 15 are
-on by default (`README.md` line 47; the registry is `gnomon/flags.py`), which is consistent with "new behaviour defaults to off" because 2 of the 15 are security flags, on from the start (`gnomon/flags.py:54-58`), and the other 13 are behaviour flags the README says were switched on after review (no public file gives a per-flag reason). The two security flags can be switched off, but only from the Config tab after a human-presence check, with a visible warning while off (`gnomon/flags.py:54-57`, `web/backend/server.py:2953-2975`). Binding each hub caller to the
+on by default (`README.md` line 47; the registry is `gnomon/flags.py`), which is consistent with "new behaviour defaults to off" because 2 of the 15 are security flags, on from the start (`gnomon/flags.py:54-58`), and the other 13 are behaviour flags the README says were switched on after review (no public file gives a per-flag reason). The two security flags and the setting `guard_fail_closed` can be switched off from the Config tab only after a passed human-presence check, and the server shows a warning while one is off (`gnomon/flags.py:54-63`; `gnomon/config.py:507-545`; `web/backend/server.py:2847-2856`, `web/backend/server.py:2953-3027`). That check is not the only route: editing the machine config file by hand switches them off with no check, because loading that file has no integrity check. The deny guard is meant to refuse an agent's write to that file, but it is a filter for accidents with known misses, not a security boundary. Binding each hub caller to the
 session that launched it is specified and off (`hub_caller_binding`, `gnomon/flags.py:147`), as are
 several self-verbs, including agent mail (`gnomon/flags.py:158`) and the restart verb (`gnomon/flags.py:170`).
 The design principles list them as "specified but not on by default"

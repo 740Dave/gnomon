@@ -251,7 +251,7 @@ This repository is the Gnomon engine, the harness, local hub and web dashboard w
 - answer-record: whether the answer followed the recommendation, plus any comment the pilot added
 - answer-notice: fixed template filled only with strictly validated identifiers
 - related-project: GP-DECISION-ENGINE
-- source: README.md lines 24, 42; docs/design-principles.lts EP-GN-2, DP-GN-7, DP-GN-12
+- source: README.md lines 25, 42; docs/design-principles.lts EP-GN-2, DP-GN-7, DP-GN-12
 
 ## [GNE-AGENT-DEFINITIONS] Agent definitions
 
@@ -260,7 +260,7 @@ This repository is the Gnomon engine, the harness, local hub and web dashboard w
 - failure-rule: a failed expansion is shown loudly; the renderer reports every outcome other than success to the session and the pilot
 - memory-location: the agent's own factlattice-engine corpus; each agent writes only to its own, by convention
 - shared-text: one included fragment, never pasted copies
-- source: README.md lines 43, 79; docs/design-principles.lts GN-GLOSSARY (agent-definition), DP-GN-21
+- source: README.md lines 43, 80; docs/design-principles.lts GN-GLOSSARY (agent-definition), DP-GN-21
 
 ## [GNE-USES-FACTLATTICE-ENGINE] How Gnomon uses factlattice-engine
 
@@ -296,7 +296,7 @@ This repository is the Gnomon engine, the harness, local hub and web dashboard w
 - other-readers: the graph viewer also builds the engine's store in-process and queries it (gnomon/app/graph_viewer.py:102-103)
 - files-not-harness-bound: the memory files, DSD answers and the data that agent definitions pull in at render time are plain FactLattice `.lts` files (memory: `agents/<id>/personality/lifelog.lts`, gnomon/memory.py:3-8 and gnomon/memory.py:106; DSD answers: one `<id>.lts` file each, gnomon/dsd/writer.py:12-14 and gnomon/dsd/answers_reader.py:1-8; definition data read at render: gnomon/lts_expand.py:11-13); any MCP client that can launch a local stdio server can read them through factlattice-engine (the server is registered as a stdio command, gnomon/config.py:169; README.md line 62); it is the Gnomon harness that runs Claude Code, not these files
 - optional-dependency: if the engine cannot be imported, the DSD writer and the graph viewer report an error, and the renderer shows the failure banner; the headless core does not need it (README.md line 61; gnomon/lts_expand.py:77-85)
-- tests-in-this-repo: this repository's public tests exercise the DSD writer and reader (for example tests/test_dsd_answers_reader.py, tests/test_dsd_live.py, tests/test_dsd_answer_header_id.py); the macro expander (`gnomon/lts_expand.py`) has no public test (no file in `tests/` mentions `lts_expand` or `LtsExpander`); the memory-recording function (`gnomon/memory.py`) and the rendering function (`gnomon/agent_def.py`) are not called by any public test, although tests import those two modules for other functions (tests/test_compact_ignored_readers.py:22 imports `last_compaction`; tests/test_relaunch_strip_derived_keys.py:185 imports `edit_launch_json`); positive control for the search: `deny_guard` is mentioned in 70 lines under `tests/`
+- tests-in-this-repo: scoped to what was searched in `tests/`: this repository's public tests exercise the DSD writer and reader (for example tests/test_dsd_answers_reader.py, tests/test_dsd_live.py, tests/test_dsd_answer_header_id.py); the macro expander (`gnomon/lts_expand.py`) has no public test (no file mentions `lts_expand` or `LtsExpander`); the memory-recording call (`gnomon/memory.py`) has no public test; definition rendering (`gnomon/agent_def.py`) is reached by one public test, tests/test_x13s1_settings_registry.py:95-107, through the launcher (render_agent_def is called at gnomon/launch.py:366) with a definition that has no macros, so macro expansion is not exercised there; other tests import `gnomon.memory` and `gnomon.agent_def` for other functions (tests/test_compact_ignored_readers.py:22 imports `last_compaction`; tests/test_relaunch_strip_derived_keys.py:185 imports `edit_launch_json`); positive control for the search: `deny_guard` is mentioned in 70 lines under `tests/`
 - not-confirmed-in-public-code: that the next query of a running `lts-engine` server sees a memory or answer written by Gnomon is a property of factlattice-engine (stated in its README), not shown by any code in this repository; Gnomon's own check is the read-back and live check above
 - source: the file:line pointers in each line, at the commit that carries this file
 
@@ -345,7 +345,7 @@ This repository is the Gnomon engine, the harness, local hub and web dashboard w
 - registry: `gnomon/flags.py`; every flag has one declared default in one registry; no reading code supplies its own default
 - inspection: effective value inspectable with the layer it came from; Config tab lists every flag with description and state
 - setting: machine config `"flags"` key
-- security-controls: on from the start; the design principle says that by default a security control has no off switch, and that where a deployment keeps one it defaults to on and a missing setting reads as on (docs/design-principles.lts:247, DP-GN-8); in the code, the two security flags `confirm_proof` and `dsd_submit_proof` and the top-level setting `guard_fail_closed` do have an off switch: the Config tab can turn one off only after a passed human-presence check, an agent write to the machine config is denied by the harness deny layer, and the server shows a visible warning while one is off (gnomon/flags.py:54-63; gnomon/config.py:507-520; web/backend/server.py:2953-2975); that switch is a known limit
+- security-controls: on from the start; the design principle says that by default a security control has no off switch, and that where a deployment keeps one it defaults to on and a missing setting reads as on (docs/design-principles.lts:247, DP-GN-8); in the code, the two security flags `confirm_proof` and `dsd_submit_proof` and the top-level setting `guard_fail_closed` do have an off switch: from the Config tab they can be turned off only after a passed human-presence check (gnomon/config.py:525-539 refuses a save without one; web/backend/server.py:3008-3027 asks for it), and the server shows a visible warning while one is off (web/backend/server.py:2847-2856); that is not the only route: editing the machine config file by hand turns them off with no check, because loading that file has no integrity check; an agent's write to that file is meant to be refused by the harness deny guard, which is a filter for accidents with known misses, not a security boundary (gnomon/flags.py:54-63); that switch is a known limit
 - lasting-state: a flag whose on path writes lasting state says what turning it off does with that state
 - specified-but-off: hub credential binding (DP-GN-6); several self-verbs and definition-derived self-verbs (DP-GN-5)
 - source: README.md lines 47, 67; docs/design-principles.lts GN-PRINCIPLES status, GN-GLOSSARY (flag), DP-GN-8
